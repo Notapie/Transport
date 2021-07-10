@@ -8,34 +8,39 @@ void StatReader::ReadQueries() const {
 
     std::deque<std::string> queries;
 
-    std::deque<std::string_view> bus_queries;
-
     for (int i = 0; i < queries_count; ++i) {
+        queries.push_back(ReadLine());
+    }
+    for (std::string_view query : queries) {
 
-        std::string& query_ref = queries.emplace_back(ReadLine());
-        std::string_view query_view = Trim(query_ref);
+        query = Trim(query);
 
         //Далее ищем первое слово, которое и будет типом запроса
-        int64_t offset = query_view.find(' ');
-        std::string_view type = query_view.substr(0, offset);
+        int64_t offset = query.find(' ');
+        std::string_view type = query.substr(0, offset);
 
         //И сразу же исключаем его из нужных данных
-        if (offset == query_view.npos) {
+        if (offset == query.npos) {
             continue;
         }
-        query_view.remove_prefix(offset + 1);
+        query.remove_prefix(offset + 1);
 
         if (type == "Bus"s) {
-            bus_queries.push_back(query_view);
+            PrintBusHandler(query);
+            continue;
+        }
+
+        if (type == "Stop"s) {
+            PrintStopHandler(query);
         }
 
     }
-    for (const std::string_view query : bus_queries) {
-        PrintBusHandler(query);
-    }
-
 }
 
 void StatReader::PrintBusHandler(std::string_view bus_name) const {
-    catalogue_.PrintBus(bus_name);
+    catalogue_.PrintBusRoute(bus_name);
+}
+
+void StatReader::PrintStopHandler(std::string_view stop_name) const {
+    catalogue_.PrintStopBuses(stop_name);
 }

@@ -5,6 +5,7 @@
 #include <vector>
 #include <unordered_map>
 #include <iostream>
+#include <set>
 
 #include "geo.h"
 
@@ -37,13 +38,16 @@ public:
 
     void AddBus(std::string_view name, const std::vector<std::string_view>& raw_route, char route_type);
 
-    void PrintBus(std::string_view name) const;
+    void PrintBusRoute(std::string_view bus_name) const;
+
+    void PrintStopBuses(std::string_view stop_name) const;
 
 private:
     std::deque<Stop> stops_source;
     std::deque<Bus> buses_source;
     std::unordered_map<std::string_view, Stop*> name_to_stop_;
     std::unordered_map<std::string_view, Bus*> name_to_bus_;
+    std::unordered_map<Stop*, std::set<std::string_view>> stop_to_buses_;
 
 };
 

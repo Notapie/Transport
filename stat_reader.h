@@ -15,5 +15,6 @@ private:
     TransportCatalogue& catalogue_;
 
     void PrintBusHandler(std::string_view bus_name) const;
+    void PrintStopHandler(std::string_view stop_name) const;
 
 };

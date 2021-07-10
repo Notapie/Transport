@@ -25,22 +25,57 @@ void TransportCatalogue::AddBus(std::string_view name, const std::vector<std::st
             route_type
     );
     name_to_bus_[new_bus_ptr->name] = new_bus_ptr;
+
+    //Добавляем автобус ко всем остановкам, через которые он проходит
+
+    for (Stop* stop : new_bus_ptr->route) {
+        stop_to_buses_[stop].insert(new_bus_ptr->name);
+    }
+
 }
 
-void TransportCatalogue::PrintBus(std::string_view name) const {
+void TransportCatalogue::PrintBusRoute(std::string_view bus_name) const {
     using namespace std::string_literals;
-    if (name_to_bus_.count(name) == 0) {
-        std::cout << "Bus "s << name << ": not found"s << std::endl;
+    if (name_to_bus_.count(bus_name) == 0) {
+        std::cout << "Bus "s << bus_name << ": not found"s << std::endl;
         return;
     }
 
-    std::cout << *name_to_bus_.at(name) << std::endl;
+    std::cout << *name_to_bus_.at(bus_name) << std::endl;
+}
+
+void TransportCatalogue::PrintStopBuses(std::string_view stop_name) const {
+    using namespace std::string_literals;
+    if (name_to_stop_.count(stop_name) == 0) {
+        std::cout << "Stop "s << stop_name << ": not found"s << std::endl;
+        return;
+    }
+
+    Stop* stop = name_to_stop_.at(stop_name);
+    if (stop_to_buses_.count(stop) == 0) {
+        std::cout << "Stop "s << stop_name << ": no buses"s << std::endl;
+        return;
+    }
+
+    const std::set<std::string_view>& buses = stop_to_buses_.at(stop);
+
+    std::cout << "Stop "s << stop_name << ": buses "s;
+
+    bool first = true;
+    for (std::string_view bus : buses) {
+        if (!first) {
+            std::cout << ' ';
+        }
+        first = false;
+        std::cout << bus;
+    }
+    std::cout << std::endl;
 }
 
 std::ostream& operator<<(std::ostream& o, const Bus& bus) {
     using namespace std::string_literals;
 
-    o << "Bus "s << bus.name << ": ";
+    o << "Bus "s << bus.name << ": "s;
 
     size_t total_stops = bus.route.size();
     size_t uniq_stops = std::unordered_set<Stop*>{bus.route.begin(), bus.route.end()}.size();
