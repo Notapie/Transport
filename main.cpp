@@ -9,10 +9,10 @@ using namespace std;
 
 int main() {
 
-    TransportCatalogue catalogue;
+    TransportCatalogue transport_catalogue;
 
-    InputReader filler(catalogue);
-    StatReader stats(catalogue);
+    InputReader filler(transport_catalogue);
+    StatReader stats(transport_catalogue);
 
     filler.ReadQueries();
     stats.ReadQueries();

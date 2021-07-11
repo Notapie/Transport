@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <iostream>
 #include <set>
+#include <utility>
 
 #include "geo.h"
 
@@ -31,10 +32,18 @@ struct Bus {
     RouteType type = ONE_SIDED;
 };
 
+struct StopsHasher {
+    size_t operator()(const std::pair<Stop*, Stop*>& stops) const;
+private:
+    std::hash<const void*> ptr_hasher_;
+};
+
 class TransportCatalogue {
 
 public:
     void AddStop(std::string_view name, double latitude, double longitude);
+
+    void AddDistance(std::string_view stop_name, std::string_view destination_name, int distace);
 
     void AddBus(std::string_view name, const std::vector<std::string_view>& raw_route, char route_type);
 
@@ -42,12 +51,19 @@ public:
 
     void PrintStopBuses(std::string_view stop_name) const;
 
+
 private:
     std::deque<Stop> stops_source;
     std::deque<Bus> buses_source;
     std::unordered_map<std::string_view, Stop*> name_to_stop_;
     std::unordered_map<std::string_view, Bus*> name_to_bus_;
     std::unordered_map<Stop*, std::set<std::string_view>> stop_to_buses_;
+    std::unordered_map<std::pair<Stop*, Stop*>, int, StopsHasher> stops_to_length_;
+
+    double GetRouteGeoDistance(const Bus& bus) const;
+    int GetRouteRealDistance(const Bus& bus) const;
+
+    int GetRealLength(Stop* first_stop, Stop* second_stop) const;
 
 };
 

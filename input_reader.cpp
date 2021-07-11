@@ -54,6 +54,15 @@ std::string_view Trim(std::string_view text) {
     return text.substr(offset, text.find_last_not_of(' ') - offset + 1);
 }
 
+std::string_view RemovePrefixWords(std::string_view text, int words_to_remove) {
+    for (int i = 0; i < words_to_remove; ++i) {
+        text = Trim(text);
+        text.remove_prefix(text.find(' '));
+    }
+
+    return Trim(text);
+}
+
 char GetRouteType(std::string_view route) {
     int64_t end = route.npos;
     int64_t pos = route.find('-');
@@ -98,34 +107,63 @@ void InputReader::ReadQueries() const {
         }
     }
 
-    //И тпереь просто в нужном порядке вызываем обработчики
-    for (const std::string_view query : stop_queries) {
-        StopAddHandler(query);
-    }
+    StopAddHandler(stop_queries);
     for (const std::string_view query : bus_queries) {
         BusAddHandler(query);
     }
 }
 
-void InputReader::StopAddHandler(std::string_view query) const {
-    std::string stop_name;
+void InputReader::StopAddHandler(std::vector<std::string_view>& queries) const {
+    std::unordered_map<std::string_view, std::deque<std::string_view>> stop_to_distance_queries;
 
-    //Делим запрос по символу ":"
-    std::vector<std::string_view> name_to_coords = SplitBy(query, ':');
-    stop_name = name_to_coords[0];
+    for (const std::string_view query : queries) {
+        std::string_view stop_name;
 
-    std::vector<std::string_view> coords = SplitBy(name_to_coords[1], ',');
+        //Делим запрос по символу ":"
+        std::vector<std::string_view> name_to_coords = SplitBy(query, ':');
+        stop_name = name_to_coords[0];
 
-    double x = 0, y = 0;
+        std::vector<std::string_view> props = SplitBy(name_to_coords[1], ',');
 
-    std::stringstream buffer;
-    buffer << coords[0] << coords[1];
+        double x = 0, y = 0;
 
-    buffer >> x;
-    buffer >> y;
+        std::stringstream buffer;
+        buffer << props[0] << props[1];
 
-    //Дальше просто вызываем функцию добавления новой остановки класса справочника
-    catalogue_.AddStop(stop_name, x, y);
+        buffer >> x;
+        buffer >> y;
+
+        //Если в параметрах есть расстояние до ближайших остановок, закидываем их в контейнер
+        if (props.size() > 2) {
+            for (size_t i = 2; i < props.size(); ++i) {
+                stop_to_distance_queries[stop_name].push_back(Trim(props[i]));
+            }
+        }
+
+        //Дальше просто вызываем функцию добавления новой остановки класса справочника
+        catalogue_.AddStop(stop_name, x, y);
+    }
+    InsertDistances(stop_to_distance_queries);
+}
+
+void InputReader::InsertDistances(
+        std::unordered_map<std::string_view, std::deque<std::string_view>>& stop_to_distance_queries) const {
+
+    for (const auto& [stop, queries] : stop_to_distance_queries) {
+        for (std::string_view query : queries) {
+            std::stringstream buffer;
+
+            int distance = 0;
+            std::string_view destination;
+
+            buffer << query;
+            buffer >> distance;
+
+            destination = RemovePrefixWords(query, 2);
+            catalogue_.AddDistance(stop, destination, distance);
+        }
+    }
+
 }
 
 void InputReader::BusAddHandler(std::string_view query) const {
