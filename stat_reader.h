@@ -4,17 +4,21 @@
 #include "input_reader.h"
 
 
-class StatReader {
+namespace transport_catalogue {
 
-public:
-    explicit StatReader(TransportCatalogue& catalogue) noexcept : catalogue_(catalogue) {}
+    class StatReader {
 
-    void ReadQueries() const;
+    public:
+        explicit StatReader(TransportCatalogue& catalogue) noexcept : catalogue_(catalogue) {}
 
-private:
-    TransportCatalogue& catalogue_;
+        void ReadQueries() const;
 
-    void PrintBusHandler(std::string_view bus_name) const;
-    void PrintStopHandler(std::string_view stop_name) const;
+    private:
+        TransportCatalogue& catalogue_;
 
-};
+        void PrintBusHandler(std::string_view bus_name) const;
+        void PrintStopHandler(std::string_view stop_name) const;
+
+    };
+
+}
