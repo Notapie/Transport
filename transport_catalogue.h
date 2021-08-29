@@ -58,8 +58,8 @@ namespace transport_catalogue {
 
 
     private:
-        std::deque<detail::Stop> stops_source;
-        std::deque<detail::Bus> buses_source;
+        std::deque<detail::Stop> stops_source_;
+        std::deque<detail::Bus> buses_source_;
         std::unordered_map<std::string_view, detail::Stop*> name_to_stop_;
         std::unordered_map<std::string_view, detail::Bus*> name_to_bus_;
         std::unordered_map<detail::Stop*, std::set<std::string_view>> stop_to_buses_;

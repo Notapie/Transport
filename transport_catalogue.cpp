@@ -15,7 +15,7 @@ namespace transport_catalogue {
     using namespace detail;
 
     void TransportCatalogue::AddStop(std::string_view name, double latitude, double longitude) {
-        Stop* new_stop_ptr = &stops_source.emplace_back(
+        Stop* new_stop_ptr = &stops_source_.emplace_back(
                 name,
                 latitude, longitude
         );
@@ -30,7 +30,7 @@ namespace transport_catalogue {
             route.push_back(name_to_stop_.at(stop));
         }
 
-        Bus* new_bus_ptr = &buses_source.emplace_back(
+        Bus* new_bus_ptr = &buses_source_.emplace_back(
                 name,
                 route,
                 route_type
