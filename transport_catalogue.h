@@ -24,7 +24,7 @@ namespace transport_catalogue {
                     : name(std::string(stop_name)), coords({latitude, longtitude}) {}
 
             std::string name;
-            Coordinates coords;
+            geo::Coordinates coords;
         };
 
         struct StopsHasher {

@@ -115,7 +115,7 @@ namespace transport_catalogue {
         double distance = 0;
 
         for (size_t i = 1; i < bus.route.size(); ++i) {
-            distance += ComputeDistance(bus.route.at(i - 1)->coords, bus.route.at(i)->coords);
+            distance += geo::ComputeDistance(bus.route.at(i - 1)->coords, bus.route.at(i)->coords);
         }
 
         if (bus.type == REVERSIBLE) {
