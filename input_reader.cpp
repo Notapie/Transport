@@ -64,6 +64,17 @@ namespace transport_catalogue {
             return Trim(text);
         }
 
+        std::string_view DetachByDelimeter(std::string_view& raw_string, std::string_view delimeter) {
+            size_t end = raw_string.npos;
+            size_t pos = raw_string.find(delimeter);
+
+            std::string_view result = raw_string.substr(0, pos);
+            size_t to_remove = pos == end ? raw_string.size() : pos + delimeter.size();
+
+            raw_string.remove_prefix(to_remove);
+            return result;
+        }
+
         char GetRouteType(std::string_view route) {
             int64_t end = route.npos;
             int64_t pos = route.find('-');
@@ -76,7 +87,7 @@ namespace transport_catalogue {
     }
 
     void InputReader::ReadQueries(std::istream& input) const {
-        using namespace std::string_literals;
+        using namespace std::literals;
         int queries_count = detail::ReadLineWithNumber(input);
 
         //Тут просто хранилище исходных строк-запросов
@@ -88,25 +99,18 @@ namespace transport_catalogue {
 
         for (int i = 0; i < queries_count; ++i) {
             //Получаем ссылку на добавленный запрос
-            std::string_view query_view = queries.emplace_back(detail::ReadLine(input));
+            std::string_view query = queries.emplace_back(detail::ReadLine(input));
 
             //Далее ищем первое слово, которое и будет типом запроса
-            int64_t offset = query_view.find(' ');
-            std::string_view type = query_view.substr(0, offset);
-
-            //И сразу же исключаем его из нужных данных
-            if (offset == query_view.npos) {
-                continue;
-            }
-            query_view.remove_prefix(offset + 1);
+            std::string_view type = detail::DetachByDelimeter(query, " "sv);
 
             //А тут заполняем данными без типа нужные контейнеры
             if (type == "Stop"s) {
-                stop_queries.push_back(query_view);
+                stop_queries.push_back(query);
                 continue;
             }
             if (type == "Bus"s) {
-                bus_queries.push_back(query_view);
+                bus_queries.push_back(query);
             }
         }
 

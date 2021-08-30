@@ -3,7 +3,7 @@
 namespace transport_catalogue {
 
     void StatReader::ReadQueries(std::istream& input, std::ostream& output) const {
-        using namespace std::string_literals;
+        using namespace std::literals;
 
         int queries_count = detail::ReadLineWithNumber(input);
 
@@ -16,14 +16,7 @@ namespace transport_catalogue {
         for (std::string_view query : queries) {
 
             //Далее ищем первое слово, которое и будет типом запроса
-            int64_t offset = query.find(' ');
-            std::string_view type = query.substr(0, offset);
-
-            //И сразу же исключаем его из нужных данных
-            if (offset == query.npos) {
-                continue;
-            }
-            query.remove_prefix(offset + 1);
+            std::string_view type = detail::DetachByDelimeter(query, " "sv);
 
             if (type == "Bus"s) {
                 PrintBusHandler(query, output);
