@@ -37,7 +37,7 @@ namespace transport_catalogue {
 
         void InsertDistances(std::unordered_map<std::string_view, std::deque<std::string_view>>& queries) const;
 
-        void BusAddHandler(std::string_view query) const;
+        void BusAddHandler(std::vector<std::string_view>& queries) const;
 
     };
 

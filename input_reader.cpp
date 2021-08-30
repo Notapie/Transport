@@ -80,15 +80,15 @@ namespace transport_catalogue {
         int queries_count = detail::ReadLineWithNumber(input);
 
         //Тут просто хранилище исходных строк-запросов
-        std::deque<std::string> queries;
+        std::vector<std::string> queries;
+        queries.reserve(queries_count);
 
         std::vector<std::string_view> stop_queries;
         std::vector<std::string_view> bus_queries;
 
         for (int i = 0; i < queries_count; ++i) {
             //Получаем ссылку на добавленный запрос
-            std::string& query_ref = queries.emplace_back(detail::ReadLine(input));
-            std::string_view query_view = detail::Trim(query_ref);
+            std::string_view query_view = queries.emplace_back(detail::ReadLine(input));
 
             //Далее ищем первое слово, которое и будет типом запроса
             int64_t offset = query_view.find(' ');
@@ -111,9 +111,7 @@ namespace transport_catalogue {
         }
 
         StopAddHandler(stop_queries);
-        for (const std::string_view query : bus_queries) {
-            BusAddHandler(query);
-        }
+        BusAddHandler(bus_queries);
     }
 
     void InputReader::StopAddHandler(std::vector<std::string_view>& queries) const {
@@ -169,20 +167,22 @@ namespace transport_catalogue {
 
     }
 
-    void InputReader::BusAddHandler(std::string_view query) const {
-        std::string_view bus_name;
+    void InputReader::BusAddHandler(std::vector<std::string_view>& queries) const {
+        for (std::string_view query : queries) {
+            std::string_view bus_name;
 
-        //Делим запрос по символу ":"
-        std::vector<std::string_view> name_to_route = detail::SplitBy(query, ':');
-        bus_name = detail::Trim(name_to_route[0]);
+            //Делим запрос по символу ":"
+            std::vector<std::string_view> name_to_route = detail::SplitBy(query, ':');
+            bus_name = detail::Trim(name_to_route[0]);
 
-        char type = detail::GetRouteType(name_to_route[1]);
-        std::vector<std::string_view> stops = detail::SplitBy(name_to_route[1], type);
-        for (std::string_view& stop : stops) {
-            stop = detail::Trim(stop);
+            char type = detail::GetRouteType(name_to_route[1]);
+            std::vector<std::string_view> stops = detail::SplitBy(name_to_route[1], type);
+            for (std::string_view& stop : stops) {
+                stop = detail::Trim(stop);
+            }
+
+            catalogue_.AddBus(bus_name, stops, type);
         }
-
-        catalogue_.AddBus(bus_name, stops, type);
     }
 
 }

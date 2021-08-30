@@ -7,14 +7,13 @@ namespace transport_catalogue {
 
         int queries_count = detail::ReadLineWithNumber(input);
 
-        std::deque<std::string> queries;
+        std::vector<std::string> queries;
+        queries.reserve(queries_count);
 
         for (int i = 0; i < queries_count; ++i) {
             queries.push_back(detail::ReadLine(input));
         }
         for (std::string_view query : queries) {
-
-            query = detail::Trim(query);
 
             //Далее ищем первое слово, которое и будет типом запроса
             int64_t offset = query.find(' ');
