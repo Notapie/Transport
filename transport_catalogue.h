@@ -64,7 +64,7 @@ namespace transport_catalogue {
             double real_length = 0.0;
             double curvature = 0.0;
         };
-        RouteInfo GetBusRoute(std::string_view bus_name) const;
+        RouteInfo GetRouteInfo(std::string_view bus_name) const;
         std::vector<std::string> GetStopBuses(std::string_view stop_name) const;
 
     private:
@@ -74,7 +74,6 @@ namespace transport_catalogue {
         std::unordered_map<std::string_view, Bus*> name_to_bus_;
         std::unordered_map<Stop*, std::set<std::string_view>> stop_to_buses_;
         std::unordered_map<std::pair<Stop*, Stop*>, int, detail::StopsHasher> stops_to_length_;
-
 
         double GetRouteGeoDistance(const Bus& bus) const;
         int GetRouteRealDistance(const Bus& bus) const;

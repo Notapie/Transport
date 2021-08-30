@@ -10,16 +10,16 @@ namespace transport_catalogue {
 
     namespace detail {
 
-        std::string ReadLine() {
+        std::string ReadLine(std::istream& input) {
             std::string s;
-            getline(std::cin, s);
+            getline(input, s);
             return s;
         }
 
-        int ReadLineWithNumber() {
+        int ReadLineWithNumber(std::istream& input) {
             int result;
-            std::cin >> result;
-            ReadLine();
+            input >> result;
+            ReadLine(input);
             return result;
         }
 
@@ -75,11 +75,9 @@ namespace transport_catalogue {
 
     }
 
-    using namespace detail;
-
-    void InputReader::ReadQueries() const {
+    void InputReader::ReadQueries(std::istream& input) const {
         using namespace std::string_literals;
-        int queries_count = ReadLineWithNumber();
+        int queries_count = detail::ReadLineWithNumber(input);
 
         //Тут просто хранилище исходных строк-запросов
         std::deque<std::string> queries;
@@ -89,8 +87,8 @@ namespace transport_catalogue {
 
         for (int i = 0; i < queries_count; ++i) {
             //Получаем ссылку на добавленный запрос
-            std::string& query_ref = queries.emplace_back(ReadLine());
-            std::string_view query_view = Trim(query_ref);
+            std::string& query_ref = queries.emplace_back(detail::ReadLine(input));
+            std::string_view query_view = detail::Trim(query_ref);
 
             //Далее ищем первое слово, которое и будет типом запроса
             int64_t offset = query_view.find(' ');
@@ -125,10 +123,10 @@ namespace transport_catalogue {
             std::string_view stop_name;
 
             //Делим запрос по символу ":"
-            std::vector<std::string_view> name_to_coords = SplitBy(query, ':');
+            std::vector<std::string_view> name_to_coords = detail::SplitBy(query, ':');
             stop_name = name_to_coords[0];
 
-            std::vector<std::string_view> props = SplitBy(name_to_coords[1], ',');
+            std::vector<std::string_view> props = detail::SplitBy(name_to_coords[1], ',');
 
             double x = 0, y = 0;
 
@@ -141,7 +139,7 @@ namespace transport_catalogue {
             //Если в параметрах есть расстояние до ближайших остановок, закидываем их в контейнер
             if (props.size() > 2) {
                 for (size_t i = 2; i < props.size(); ++i) {
-                    stop_to_distance_queries[stop_name].push_back(Trim(props[i]));
+                    stop_to_distance_queries[stop_name].push_back(detail::Trim(props[i]));
                 }
             }
 
@@ -164,7 +162,7 @@ namespace transport_catalogue {
                 buffer << query;
                 buffer >> distance;
 
-                destination = RemovePrefixWords(query, 2);
+                destination = detail::RemovePrefixWords(query, 2);
                 catalogue_.AddDistance(stop, destination, distance);
             }
         }
@@ -175,13 +173,13 @@ namespace transport_catalogue {
         std::string_view bus_name;
 
         //Делим запрос по символу ":"
-        std::vector<std::string_view> name_to_route = SplitBy(query, ':');
-        bus_name = Trim(name_to_route[0]);
+        std::vector<std::string_view> name_to_route = detail::SplitBy(query, ':');
+        bus_name = detail::Trim(name_to_route[0]);
 
-        char type = GetRouteType(name_to_route[1]);
-        std::vector<std::string_view> stops = SplitBy(name_to_route[1], type);
+        char type = detail::GetRouteType(name_to_route[1]);
+        std::vector<std::string_view> stops = detail::SplitBy(name_to_route[1], type);
         for (std::string_view& stop : stops) {
-            stop = Trim(stop);
+            stop = detail::Trim(stop);
         }
 
         catalogue_.AddBus(bus_name, stops, type);

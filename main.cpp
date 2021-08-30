@@ -13,8 +13,8 @@ int main() {
     InputReader filler(tc);
     StatReader stats(tc);
 
-    filler.ReadQueries();
-    stats.ReadQueries();
+    filler.ReadQueries(cin);
+    stats.ReadQueries(cin, cout);
 
     return 0;
 }

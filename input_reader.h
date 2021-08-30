@@ -17,8 +17,8 @@ namespace transport_catalogue {
         std::string_view Trim(std::string_view text);
         char GetRouteType(std::string_view route);
 
-        std::string ReadLine();
-        int ReadLineWithNumber();
+        std::string ReadLine(std::istream& input);
+        int ReadLineWithNumber(std::istream& input);
 
     }
 
@@ -27,7 +27,7 @@ namespace transport_catalogue {
     public:
         explicit InputReader(TransportCatalogue& catalogue) noexcept : catalogue_(catalogue) {}
 
-        void ReadQueries() const;
+        void ReadQueries(std::istream& input) const;
 
 
     private:

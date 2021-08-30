@@ -2,21 +2,19 @@
 
 namespace transport_catalogue {
 
-    using namespace detail;
-
-    void StatReader::ReadQueries() const {
+    void StatReader::ReadQueries(std::istream& input, std::ostream& output) const {
         using namespace std::string_literals;
 
-        int queries_count = ReadLineWithNumber();
+        int queries_count = detail::ReadLineWithNumber(input);
 
         std::deque<std::string> queries;
 
         for (int i = 0; i < queries_count; ++i) {
-            queries.push_back(ReadLine());
+            queries.push_back(detail::ReadLine(input));
         }
         for (std::string_view query : queries) {
 
-            query = Trim(query);
+            query = detail::Trim(query);
 
             //Далее ищем первое слово, которое и будет типом запроса
             int64_t offset = query.find(' ');
@@ -29,55 +27,55 @@ namespace transport_catalogue {
             query.remove_prefix(offset + 1);
 
             if (type == "Bus"s) {
-                PrintBusHandler(query);
+                PrintBusHandler(query, output);
                 continue;
             }
 
             if (type == "Stop"s) {
-                PrintStopHandler(query);
+                PrintStopHandler(query, output);
             }
 
         }
     }
 
-    void StatReader::PrintBusHandler(std::string_view bus_name) const {
+    void StatReader::PrintBusHandler(std::string_view bus_name, std::ostream& output) const {
         using namespace std::literals;
 
         if (!catalogue_.IsBusExists(bus_name)) {
-            std::cout << "Bus "sv << bus_name << ": not found"sv << std::endl;
+            output << "Bus "sv << bus_name << ": not found"sv << std::endl;
             return;
         }
 
-        TransportCatalogue::RouteInfo info = catalogue_.GetBusRoute(bus_name);
-        std::cout << "Bus "s << bus_name << ": "s;
+        TransportCatalogue::RouteInfo info = catalogue_.GetRouteInfo(bus_name);
+        output << "Bus "s << bus_name << ": "s;
 
-        std::cout << info.total_stops << " stops on route, "s << info.uniq_stops << " unique stops, "s
+        output << info.total_stops << " stops on route, "s << info.uniq_stops << " unique stops, "s
         << info.real_length << " route length, "s << info.curvature << " curvature"s << std::endl;
     }
 
-    void StatReader::PrintStopHandler(std::string_view stop_name) const {
+    void StatReader::PrintStopHandler(std::string_view stop_name, std::ostream& output) const {
         using namespace std::literals;
 
         if (!catalogue_.IsStopExists(stop_name)) {
-            std::cout << "Stop "sv << stop_name << ": not found"sv << std::endl;
+            output << "Stop "sv << stop_name << ": not found"sv << std::endl;
             return;
         }
         std::vector<std::string> info = catalogue_.GetStopBuses(stop_name);
         if (info.empty()) {
-            std::cout << "Stop "sv << stop_name << ": no buses"sv << std::endl;
+            output << "Stop "sv << stop_name << ": no buses"sv << std::endl;
             return;
         }
-        std::cout << "Stop "sv << stop_name << ": buses "sv;
+        output << "Stop "sv << stop_name << ": buses "sv;
 
         bool first = true;
         for (std::string_view bus : info) {
             if (!first) {
-                std::cout << ' ';
+                output << ' ';
             }
             first = false;
-            std::cout << bus;
+            output << bus;
         }
-        std::cout << std::endl;
+        output << std::endl;
     }
 
 }
