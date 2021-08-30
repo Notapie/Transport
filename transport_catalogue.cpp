@@ -44,15 +44,11 @@ namespace transport_catalogue {
         }
     }
 
-    void TransportCatalogue::PrintBusRoute(std::string_view bus_name) const {
-        using namespace std::string_literals;
-        if (name_to_bus_.count(bus_name) == 0) {
-            std::cout << "Bus "s << bus_name << ": not found"s << std::endl;
-            return;
+    TransportCatalogue::RouteInfo TransportCatalogue::GetBusRoute(std::string_view bus_name) const {
+        if (!IsBusExists(bus_name)) {
+            return {};
         }
         const Bus& bus = *name_to_bus_.at(bus_name);
-
-        std::cout << "Bus "s << bus_name << ": "s;
 
         size_t total_stops = bus.route.size();
         if (bus.type == REVERSIBLE) {
@@ -65,36 +61,32 @@ namespace transport_catalogue {
 
         double curvature = real_length / geo_length;
 
-        std::cout << total_stops << " stops on route, "s << uniq_stops << " unique stops, "s
-                  << real_length << " route length, "s << curvature << " curvature"s << std::endl;
+        return {
+            total_stops,
+            uniq_stops,
+            real_length,
+            curvature
+        };
     }
 
-    void TransportCatalogue::PrintStopBuses(std::string_view stop_name) const {
-        using namespace std::string_literals;
-        if (name_to_stop_.count(stop_name) == 0) {
-            std::cout << "Stop "s << stop_name << ": not found"s << std::endl;
-            return;
+    std::vector<std::string> TransportCatalogue::GetStopBuses(std::string_view stop_name) const {
+        if (!IsStopExists(stop_name)) {
+            return {};
         }
 
         Stop* stop = name_to_stop_.at(stop_name);
         if (stop_to_buses_.count(stop) == 0) {
-            std::cout << "Stop "s << stop_name << ": no buses"s << std::endl;
-            return;
+            return {};
         }
-
         const std::set<std::string_view>& buses = stop_to_buses_.at(stop);
 
-        std::cout << "Stop "s << stop_name << ": buses "s;
-
-        bool first = true;
+        std::vector<std::string> result;
+        result.reserve(buses.size());
         for (std::string_view bus : buses) {
-            if (!first) {
-                std::cout << ' ';
-            }
-            first = false;
-            std::cout << bus;
+            result.emplace_back(bus);
         }
-        std::cout << std::endl;
+
+        return result;
     }
 
     int TransportCatalogue::GetRealLength(Stop* first_stop, Stop* second_stop) const {
@@ -146,6 +138,14 @@ namespace transport_catalogue {
         Stop* destination = name_to_stop_.at(destination_name);
 
         stops_to_length_[std::pair<Stop*, Stop*>{stop, destination}] = distace;
+    }
+
+    bool TransportCatalogue::IsBusExists(std::string_view bus_name) const noexcept {
+        return name_to_bus_.count(bus_name) > 0;
+    }
+
+    bool TransportCatalogue::IsStopExists(std::string_view stop_name) const noexcept {
+        return name_to_stop_.count(stop_name) > 0;
     }
 
 }

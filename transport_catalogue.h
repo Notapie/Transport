@@ -53,8 +53,17 @@ namespace transport_catalogue {
 
         void AddBus(std::string_view name, const std::vector<std::string_view>& raw_route, char route_type);
 
-        void PrintBusRoute(std::string_view bus_name) const;
-        void PrintStopBuses(std::string_view stop_name) const;
+        bool IsBusExists(std::string_view bus_name) const noexcept;
+        bool IsStopExists(std::string_view stop_name) const noexcept;
+
+        struct RouteInfo {
+            size_t total_stops = 0;
+            size_t uniq_stops = 0;
+            double real_length = 0.0;
+            double curvature = 0.0;
+        };
+        RouteInfo GetBusRoute(std::string_view bus_name) const;
+        std::vector<std::string> GetStopBuses(std::string_view stop_name) const;
 
 
     private:
@@ -64,6 +73,7 @@ namespace transport_catalogue {
         std::unordered_map<std::string_view, detail::Bus*> name_to_bus_;
         std::unordered_map<detail::Stop*, std::set<std::string_view>> stop_to_buses_;
         std::unordered_map<std::pair<detail::Stop*, detail::Stop*>, int, detail::StopsHasher> stops_to_length_;
+
 
         double GetRouteGeoDistance(const detail::Bus& bus) const;
         int GetRouteRealDistance(const detail::Bus& bus) const;
