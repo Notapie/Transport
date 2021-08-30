@@ -10,9 +10,7 @@ namespace transport_catalogue {
             return ptr_hasher_(stops.first) + ptr_hasher_(stops.second) * 37;
         }
 
-    }
-
-    using namespace detail;
+    } //namespace detail
 
     void TransportCatalogue::AddStop(std::string_view name, double latitude, double longitude) {
         Stop* new_stop_ptr = &stops_source_.emplace_back(
@@ -51,7 +49,7 @@ namespace transport_catalogue {
         const Bus& bus = *name_to_bus_.at(bus_name);
 
         size_t total_stops = bus.route.size();
-        if (bus.type == REVERSIBLE) {
+        if (bus.type == RouteType::REVERSIBLE) {
             total_stops = (total_stops * 2) - 1;
         }
 
@@ -110,7 +108,7 @@ namespace transport_catalogue {
             distance += geo::ComputeDistance(bus.route.at(i - 1)->coords, bus.route.at(i)->coords);
         }
 
-        if (bus.type == REVERSIBLE) {
+        if (bus.type == RouteType::REVERSIBLE) {
             distance *= 2;
         }
 
@@ -124,7 +122,7 @@ namespace transport_catalogue {
             distance += GetRealLength(bus.route[i - 1], bus.route[i]);
         }
 
-        if (bus.type == REVERSIBLE) {
+        if (bus.type == RouteType::REVERSIBLE) {
             for (size_t i = 1; i < bus.route.size(); ++i) {
                 distance += GetRealLength(bus.route[i], bus.route[i - 1]);
             }
@@ -148,4 +146,4 @@ namespace transport_catalogue {
         return name_to_stop_.count(stop_name) > 0;
     }
 
-}
+} //namespace transport_catalogue

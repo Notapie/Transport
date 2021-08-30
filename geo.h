@@ -18,4 +18,4 @@ namespace geo {
                * 6371000;
     }
 
-}
+} //namespace geo
