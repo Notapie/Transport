@@ -24,7 +24,7 @@ namespace transport_catalogue {
         std::vector<Stop*> route;
         route.reserve(raw_route.size());
 
-        for (const auto stop : raw_route) {
+        for (std::string_view stop : raw_route) {
             route.push_back(name_to_stop_.at(stop));
         }
 
@@ -136,6 +136,12 @@ namespace transport_catalogue {
         Stop* destination = name_to_stop_.at(destination_name);
 
         stops_to_length_[std::pair<Stop*, Stop*>{stop, destination}] = distace;
+
+        //Добавляем обратный путь, если ещё не добавлен
+        std::pair<Stop*, Stop*> destination_to_stop = {destination, stop};
+        if (stops_to_length_.count(destination_to_stop) == 0) {
+            stops_to_length_[destination_to_stop] = distace;
+        }
     }
 
     bool TransportCatalogue::IsBusExists(std::string_view bus_name) const noexcept {
