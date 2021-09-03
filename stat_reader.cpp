@@ -1,5 +1,8 @@
 #include "stat_reader.h"
 
+#include <iostream>
+
+
 namespace transport_catalogue {
 
     void StatReader::ReadQueries(std::istream& input, std::ostream& output) const {

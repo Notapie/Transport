@@ -4,7 +4,8 @@
 #include <vector>
 #include <string>
 #include <string_view>
-#include <sstream>
+#include <algorithm>
+
 
 namespace transport_catalogue {
 
@@ -125,6 +126,8 @@ namespace transport_catalogue {
             char type = detail::GetRouteType(query);
 
             std::vector<std::string_view> stops;
+            size_t stops_count = std::count(query.begin(), query.end(), type) - 1;
+            stops.reserve(stops_count);
             while (!query.empty()) {
                 stops.push_back(detail::DetachByDelimeter(query, " "s + type + " "s));
             }

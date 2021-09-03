@@ -2,6 +2,8 @@
 #include "input_reader.h"
 #include "stat_reader.h"
 
+#include <iostream>
+
 using namespace std;
 
 
