@@ -23,47 +23,6 @@ namespace transport_catalogue {
             return result;
         }
 
-        //Разбиение текста с помощью разделителя
-        std::vector<std::string_view> SplitBy(std::string_view text, char delimiter) {
-            std::vector<std::string_view> words;
-
-            int64_t end = text.npos;
-            while(true) {
-                int64_t offset = text.find_first_not_of(delimiter);
-                if (offset == end) break;
-
-                text.remove_prefix(offset);
-                int64_t next_delimiter = text.find(delimiter, 0);
-                words.push_back(next_delimiter == end ? text : text.substr(0, next_delimiter));
-
-                if (next_delimiter == end) break;
-                text.remove_prefix(next_delimiter);
-            }
-
-            return words;
-        }
-
-        //Удаляет лишние пробелы слева и справа
-        std::string_view Trim(std::string_view text) {
-            int64_t end = text.npos;
-            int64_t offset = text.find_first_not_of(' ');
-
-            if (offset == end) {
-                return {};
-            }
-
-            return text.substr(offset, text.find_last_not_of(' ') - offset + 1);
-        }
-
-        std::string_view RemovePrefixWords(std::string_view text, int words_to_remove) {
-            for (int i = 0; i < words_to_remove; ++i) {
-                text = Trim(text);
-                text.remove_prefix(text.find(' '));
-            }
-
-            return Trim(text);
-        }
-
         std::string_view DetachByDelimeter(std::string_view& raw_string, std::string_view delimeter) {
             size_t end = raw_string.npos;
             size_t pos = raw_string.find(delimeter);
@@ -119,29 +78,24 @@ namespace transport_catalogue {
     }
 
     void InputReader::StopAddHandler(std::vector<std::string_view>& queries) const {
+        using namespace std::literals;
         std::unordered_map<std::string_view, std::deque<std::string_view>> stop_to_distance_queries;
 
-        for (const std::string_view query : queries) {
-            std::string_view stop_name;
+        for (std::string_view query : queries) {
+            std::string_view stop_name = detail::DetachByDelimeter(query, ": "sv);
 
-            //Делим запрос по символу ":"
-            std::vector<std::string_view> name_to_coords = detail::SplitBy(query, ':');
-            stop_name = name_to_coords[0];
+            std::deque<std::string_view> props;
+            while (!query.empty()) {
+                props.push_back(detail::DetachByDelimeter(query, ", "sv));
+            }
 
-            std::vector<std::string_view> props = detail::SplitBy(name_to_coords[1], ',');
-
-            double x = 0, y = 0;
-
-            std::stringstream buffer;
-            buffer << props[0] << props[1];
-
-            buffer >> x;
-            buffer >> y;
+            double x = stod(std::string(props.at(0)));
+            double y = stod(std::string(props.at(1)));
 
             //Если в параметрах есть расстояние до ближайших остановок, закидываем их в контейнер
             if (props.size() > 2) {
                 for (size_t i = 2; i < props.size(); ++i) {
-                    stop_to_distance_queries[stop_name].push_back(detail::Trim(props[i]));
+                    stop_to_distance_queries[stop_name].push_back(props[i]);
                 }
             }
 
@@ -153,36 +107,26 @@ namespace transport_catalogue {
 
     void InputReader::InsertDistances(
             std::unordered_map<std::string_view, std::deque<std::string_view>>& stop_to_distance_queries) const {
+        using namespace std::literals;
 
         for (const auto& [stop, queries] : stop_to_distance_queries) {
             for (std::string_view query : queries) {
-                std::stringstream buffer;
-
-                int distance = 0;
-                std::string_view destination;
-
-                buffer << query;
-                buffer >> distance;
-
-                destination = detail::RemovePrefixWords(query, 2);
-                catalogue_.AddDistance(stop, destination, distance);
+                int distance = stoi(std::string(detail::DetachByDelimeter(query, "m to "sv)));
+                catalogue_.AddDistance(stop, query, distance);
             }
         }
-
     }
 
     void InputReader::BusAddHandler(std::vector<std::string_view>& queries) const {
+        using namespace std::literals;
         for (std::string_view query : queries) {
-            std::string_view bus_name;
+            std::string_view bus_name = detail::DetachByDelimeter(query, ": "sv);
 
-            //Делим запрос по символу ":"
-            std::vector<std::string_view> name_to_route = detail::SplitBy(query, ':');
-            bus_name = detail::Trim(name_to_route[0]);
+            char type = detail::GetRouteType(query);
 
-            char type = detail::GetRouteType(name_to_route[1]);
-            std::vector<std::string_view> stops = detail::SplitBy(name_to_route[1], type);
-            for (std::string_view& stop : stops) {
-                stop = detail::Trim(stop);
+            std::vector<std::string_view> stops;
+            while (!query.empty()) {
+                stops.push_back(detail::DetachByDelimeter(query, " "s + type + " "s));
             }
 
             catalogue_.AddBus(bus_name, stops, type);
