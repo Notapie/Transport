@@ -2,6 +2,7 @@
 
 #include <unordered_set>
 
+
 namespace transport_catalogue {
 
     namespace detail {
@@ -10,12 +11,10 @@ namespace transport_catalogue {
             return ptr_hasher_(stops.first) + ptr_hasher_(stops.second) * 37;
         }
 
-    }
-
-    using namespace detail;
+    } //namespace detail
 
     void TransportCatalogue::AddStop(std::string_view name, double latitude, double longitude) {
-        Stop* new_stop_ptr = &stops_source.emplace_back(
+        Stop* new_stop_ptr = &stops_source_.emplace_back(
                 name,
                 latitude, longitude
         );
@@ -26,11 +25,11 @@ namespace transport_catalogue {
         std::vector<Stop*> route;
         route.reserve(raw_route.size());
 
-        for (const auto stop : raw_route) {
+        for (std::string_view stop : raw_route) {
             route.push_back(name_to_stop_.at(stop));
         }
 
-        Bus* new_bus_ptr = &buses_source.emplace_back(
+        Bus* new_bus_ptr = &buses_source_.emplace_back(
                 name,
                 route,
                 route_type
@@ -44,18 +43,14 @@ namespace transport_catalogue {
         }
     }
 
-    void TransportCatalogue::PrintBusRoute(std::string_view bus_name) const {
-        using namespace std::string_literals;
-        if (name_to_bus_.count(bus_name) == 0) {
-            std::cout << "Bus "s << bus_name << ": not found"s << std::endl;
-            return;
+    TransportCatalogue::RouteInfo TransportCatalogue::GetRouteInfo(std::string_view bus_name) const {
+        if (!IsBusExists(bus_name)) {
+            return {};
         }
         const Bus& bus = *name_to_bus_.at(bus_name);
 
-        std::cout << "Bus "s << bus_name << ": "s;
-
         size_t total_stops = bus.route.size();
-        if (bus.type == REVERSIBLE) {
+        if (bus.type == RouteType::REVERSIBLE) {
             total_stops = (total_stops * 2) - 1;
         }
 
@@ -65,36 +60,32 @@ namespace transport_catalogue {
 
         double curvature = real_length / geo_length;
 
-        std::cout << total_stops << " stops on route, "s << uniq_stops << " unique stops, "s
-                  << real_length << " route length, "s << curvature << " curvature"s << std::endl;
+        return {
+            total_stops,
+            uniq_stops,
+            real_length,
+            curvature
+        };
     }
 
-    void TransportCatalogue::PrintStopBuses(std::string_view stop_name) const {
-        using namespace std::string_literals;
-        if (name_to_stop_.count(stop_name) == 0) {
-            std::cout << "Stop "s << stop_name << ": not found"s << std::endl;
-            return;
+    std::vector<std::string> TransportCatalogue::GetStopBuses(std::string_view stop_name) const {
+        if (!IsStopExists(stop_name)) {
+            return {};
         }
 
         Stop* stop = name_to_stop_.at(stop_name);
         if (stop_to_buses_.count(stop) == 0) {
-            std::cout << "Stop "s << stop_name << ": no buses"s << std::endl;
-            return;
+            return {};
         }
-
         const std::set<std::string_view>& buses = stop_to_buses_.at(stop);
 
-        std::cout << "Stop "s << stop_name << ": buses "s;
-
-        bool first = true;
+        std::vector<std::string> result;
+        result.reserve(buses.size());
         for (std::string_view bus : buses) {
-            if (!first) {
-                std::cout << ' ';
-            }
-            first = false;
-            std::cout << bus;
+            result.emplace_back(bus);
         }
-        std::cout << std::endl;
+
+        return result;
     }
 
     int TransportCatalogue::GetRealLength(Stop* first_stop, Stop* second_stop) const {
@@ -102,12 +93,6 @@ namespace transport_catalogue {
         if (stops_to_length_.count(first_to_second) > 0) {
             return stops_to_length_.at(first_to_second);
         }
-
-        std::pair<Stop*, Stop*> second_to_first = {second_stop, first_stop};
-        if (stops_to_length_.count(second_to_first) > 0) {
-            return stops_to_length_.at(second_to_first);
-        }
-
         return 0;
     }
 
@@ -115,10 +100,10 @@ namespace transport_catalogue {
         double distance = 0;
 
         for (size_t i = 1; i < bus.route.size(); ++i) {
-            distance += ComputeDistance(bus.route.at(i - 1)->coords, bus.route.at(i)->coords);
+            distance += geo::ComputeDistance(bus.route.at(i - 1)->coords, bus.route.at(i)->coords);
         }
 
-        if (bus.type == REVERSIBLE) {
+        if (bus.type == RouteType::REVERSIBLE) {
             distance *= 2;
         }
 
@@ -132,7 +117,7 @@ namespace transport_catalogue {
             distance += GetRealLength(bus.route[i - 1], bus.route[i]);
         }
 
-        if (bus.type == REVERSIBLE) {
+        if (bus.type == RouteType::REVERSIBLE) {
             for (size_t i = 1; i < bus.route.size(); ++i) {
                 distance += GetRealLength(bus.route[i], bus.route[i - 1]);
             }
@@ -146,6 +131,20 @@ namespace transport_catalogue {
         Stop* destination = name_to_stop_.at(destination_name);
 
         stops_to_length_[std::pair<Stop*, Stop*>{stop, destination}] = distace;
+
+        //Добавляем обратный путь, если ещё не добавлен
+        std::pair<Stop*, Stop*> destination_to_stop = {destination, stop};
+        if (stops_to_length_.count(destination_to_stop) == 0) {
+            stops_to_length_[destination_to_stop] = distace;
+        }
     }
 
-}
+    bool TransportCatalogue::IsBusExists(std::string_view bus_name) const noexcept {
+        return name_to_bus_.count(bus_name) > 0;
+    }
+
+    bool TransportCatalogue::IsStopExists(std::string_view stop_name) const noexcept {
+        return name_to_stop_.count(stop_name) > 0;
+    }
+
+} //namespace transport_catalogue

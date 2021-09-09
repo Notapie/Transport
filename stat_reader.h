@@ -11,13 +11,13 @@ namespace transport_catalogue {
     public:
         explicit StatReader(TransportCatalogue& catalogue) noexcept : catalogue_(catalogue) {}
 
-        void ReadQueries() const;
+        void ReadQueries(std::istream& input, std::ostream& output) const;
 
     private:
-        TransportCatalogue& catalogue_;
+        const TransportCatalogue& catalogue_;
 
-        void PrintBusHandler(std::string_view bus_name) const;
-        void PrintStopHandler(std::string_view stop_name) const;
+        void PrintBusHandler(std::string_view bus_name, std::ostream& output) const;
+        void PrintStopHandler(std::string_view stop_name, std::ostream& output) const;
 
     };
 

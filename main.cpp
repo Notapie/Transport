@@ -2,6 +2,8 @@
 #include "input_reader.h"
 #include "stat_reader.h"
 
+#include <iostream>
+
 using namespace std;
 
 
@@ -13,8 +15,8 @@ int main() {
     InputReader filler(tc);
     StatReader stats(tc);
 
-    filler.ReadQueries();
-    stats.ReadQueries();
+    filler.ReadQueries(cin);
+    stats.ReadQueries(cin, cout);
 
     return 0;
 }

@@ -3,7 +3,7 @@
 #include <cmath>
 
 
-namespace transport_catalogue::detail {
+namespace geo {
 
     struct Coordinates {
         double lat = 0.0;
@@ -18,4 +18,4 @@ namespace transport_catalogue::detail {
                * 6371000;
     }
 
-}
+} //namespace geo
