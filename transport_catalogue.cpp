@@ -93,12 +93,6 @@ namespace transport_catalogue {
         if (stops_to_length_.count(first_to_second) > 0) {
             return stops_to_length_.at(first_to_second);
         }
-
-        std::pair<Stop*, Stop*> second_to_first = {second_stop, first_stop};
-        if (stops_to_length_.count(second_to_first) > 0) {
-            return stops_to_length_.at(second_to_first);
-        }
-
         return 0;
     }
 

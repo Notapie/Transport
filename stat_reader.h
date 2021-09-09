@@ -14,7 +14,7 @@ namespace transport_catalogue {
         void ReadQueries(std::istream& input, std::ostream& output) const;
 
     private:
-        TransportCatalogue& catalogue_;
+        const TransportCatalogue& catalogue_;
 
         void PrintBusHandler(std::string_view bus_name, std::ostream& output) const;
         void PrintStopHandler(std::string_view stop_name, std::ostream& output) const;

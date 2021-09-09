@@ -118,18 +118,19 @@ namespace transport_catalogue {
         }
     }
 
-    void InputReader::BusAddHandler(std::vector<std::string_view>& queries) const {
+    void InputReader::BusAddHandler(const std::vector<std::string_view>& queries) const {
         using namespace std::literals;
         for (std::string_view query : queries) {
             std::string_view bus_name = detail::DetachByDelimeter(query, ": "sv);
 
             char type = detail::GetRouteType(query);
+            std::string type_delimiter = " "s + type + " "s;
 
             std::vector<std::string_view> stops;
             size_t stops_count = std::count(query.begin(), query.end(), type) - 1;
             stops.reserve(stops_count);
             while (!query.empty()) {
-                stops.push_back(detail::DetachByDelimeter(query, " "s + type + " "s));
+                stops.push_back(detail::DetachByDelimeter(query, type_delimiter));
             }
 
             catalogue_.AddBus(bus_name, stops, type);
