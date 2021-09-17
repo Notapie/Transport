@@ -8,11 +8,9 @@
 #include <utility>
 
 #include "geo/geo.h"
-
+#include "domain.h"
 
 namespace transport_catalogue {
-
-    struct Stop;
 
     namespace detail {
 
@@ -23,30 +21,6 @@ namespace transport_catalogue {
         };
 
     } //namespace detail
-
-    enum class RouteType {
-        ONE_SIDED,
-        REVERSIBLE
-    };
-
-    struct Stop {
-        Stop(std::string_view stop_name, double latitude, double longtitude)
-        : name(std::string(stop_name)), coords({latitude, longtitude}) {}
-
-        std::string name;
-        geo::Coordinates coords;
-    };
-
-    struct Bus {
-        Bus(std::string_view bus_name, std::vector<Stop*>& bus_route, char route_type)
-        : name(std::string(bus_name)), route(std::move(bus_route)),type(route_type == '-'
-        ? RouteType::REVERSIBLE : RouteType::ONE_SIDED) {}
-
-        std::string name;
-        std::vector<Stop*> route;
-        RouteType type = RouteType::ONE_SIDED;
-    };
-
 
     class TransportCatalogue {
     public:
