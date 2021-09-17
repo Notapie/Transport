@@ -11,6 +11,7 @@
 #include "domain.h"
 
 namespace transport_catalogue {
+    using namespace domain;
 
     namespace detail {
 

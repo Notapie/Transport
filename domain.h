@@ -5,7 +5,7 @@
 
 #include "geo/geo.h"
 
-namespace transport_catalogue {
+namespace transport_catalogue::domain {
 
     enum class RouteType {
         ONE_SIDED,
@@ -27,4 +27,4 @@ namespace transport_catalogue {
         RouteType type = RouteType::ONE_SIDED;
     };
 
-} // namespace transport_catalogue
+} // namespace transport_catalogue::domain
