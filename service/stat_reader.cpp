@@ -41,7 +41,7 @@ namespace transport_catalogue {
             return;
         }
 
-        TransportCatalogue::RouteInfo info = catalogue_.GetRouteInfo(bus_name);
+        RouteInfo info = catalogue_.GetRouteInfo(bus_name);
         output << "Bus "s << bus_name << ": "s;
 
         output << info.total_stops << " stops on route, "s << info.uniq_stops << " unique stops, "s

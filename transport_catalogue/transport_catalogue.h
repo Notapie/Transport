@@ -33,12 +33,6 @@ namespace transport_catalogue {
         bool IsBusExists(std::string_view bus_name) const noexcept;
         bool IsStopExists(std::string_view stop_name) const noexcept;
 
-        struct RouteInfo {
-            size_t total_stops = 0;
-            size_t uniq_stops = 0;
-            double real_length = 0.0;
-            double curvature = 0.0;
-        };
         RouteInfo GetRouteInfo(std::string_view bus_name) const;
         std::vector<std::string> GetStopBuses(std::string_view stop_name) const;
 

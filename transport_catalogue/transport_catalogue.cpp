@@ -42,7 +42,7 @@ namespace transport_catalogue {
         }
     }
 
-    TransportCatalogue::RouteInfo TransportCatalogue::GetRouteInfo(std::string_view bus_name) const {
+    RouteInfo TransportCatalogue::GetRouteInfo(std::string_view bus_name) const {
         if (!IsBusExists(bus_name)) {
             return {};
         }
