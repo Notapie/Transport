@@ -88,7 +88,7 @@ namespace transport_catalogue::service {
             }
             response.push_back(StopStat(name, request_id));
         }
-        json::Print(json::Document{response}, out);
+        json::Print(json::Document{std::move(response)}, out);
     }
 
     json::Dict JsonReader::BusStat(std::string_view bus_name, int request_id) const {
