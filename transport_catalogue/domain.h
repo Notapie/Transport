@@ -30,7 +30,7 @@ namespace transport_catalogue::domain {
     struct RouteInfo {
         size_t total_stops = 0;
         size_t uniq_stops = 0;
-        double real_length = 0.0;
+        int real_length = 0;
         double curvature = 0.0;
     };
 

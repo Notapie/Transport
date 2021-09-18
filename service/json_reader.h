@@ -22,6 +22,8 @@ namespace transport_catalogue::service {
         void InsertDistances(const std::unordered_map<std::string_view, const json::Dict*>& requests);
 
         void StatRequests(const json::Array&, std::ostream&) const;
+        json::Dict BusStat(std::string_view bus_name, int request_id) const;
+        json::Dict StopStat(std::string_view stop_name, int request_id) const;
 
     };
 

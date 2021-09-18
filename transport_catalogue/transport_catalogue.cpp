@@ -55,7 +55,7 @@ namespace transport_catalogue {
 
         size_t uniq_stops = std::unordered_set<Stop*>{bus.route.begin(), bus.route.end()}.size();
         double geo_length = GetRouteGeoDistance(bus);
-        double real_length = GetRouteRealDistance(bus);
+        int real_length = GetRouteRealDistance(bus);
 
         double curvature = real_length / geo_length;
 
