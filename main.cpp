@@ -1,21 +1,16 @@
-#include "transport_catalogue/transport_catalogue.h"
-#include "service/input_reader.h"
-#include "service/stat_reader.h"
+#include "service/json_reader.h"
 
 #include <iostream>
 
 using namespace std;
+using namespace transport_catalogue;
 
 int main() {
-    using namespace transport_catalogue;
+    TransportCatalogue transport;
 
-    TransportCatalogue tc;
+    service::JsonReader json_reader(transport);
 
-    InputReader filler(tc);
-    StatReader stats(tc);
-
-    filler.ReadQueries(cin);
-    stats.ReadQueries(cin, cout);
+    json_reader.ReadQueries(cin, cout);
 
     return 0;
 }
