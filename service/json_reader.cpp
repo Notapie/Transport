@@ -98,7 +98,7 @@ namespace transport_catalogue::service {
                 {"error_message"s, "not found"s}
             };
         }
-        domain::RouteInfo stat = db_.GetRouteInfo(bus_name);
+        RouteInfo stat = db_.GetRouteInfo(bus_name);
         return json::Dict {
                 {"request_id"s, request_id},
                 {"curvature"s, stat.curvature},
