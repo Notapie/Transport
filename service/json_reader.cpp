@@ -36,9 +36,9 @@ namespace transport_catalogue::service {
 
             std::string_view stop_name = request.at("name"s).AsString();
 
-            //остановки добавляем сразу, всё остальное копим
+            // Остановки добавляем сразу, всё остальное копим
             db_.AddStop(stop_name,
-                        request.at("latitude"s).AsDouble(),request.at("longitude"s).AsDouble());
+                        request.at("latitude"s).AsDouble(), request.at("longitude"s).AsDouble());
 
             if (request.count("road_distances"s)) {
                 stop_to_distances[stop_name] = &request.at("road_distances"s).AsMap();
