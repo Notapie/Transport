@@ -1,5 +1,8 @@
 #pragma once
 
+#include <iostream>
+#include <string_view>
+
 #include "json/json.h"
 #include "request_handler.h"
 #include "transport_catalogue/transport_catalogue.h"
@@ -8,13 +11,16 @@ namespace transport_catalogue::service {
 
     class JsonReader {
     public:
-        JsonReader(const TransportCatalogue& db);
-        void ReadQueries(std::istream& input, std::ostream& output) const;
+        JsonReader(TransportCatalogue& db);
+        void ReadQueries(std::istream& input, std::ostream& output);
 
     private:
-        const TransportCatalogue& db_;
+        TransportCatalogue& db_;
 
-        void BaseRequests(const json::Array&) const;
+        void BaseRequests(const json::Array&);
+        void BusAddRequests(const std::deque<const json::Dict*>& requests);
+        void InsertDistances(const std::unordered_map<std::string_view, const json::Dict*>& requests);
+
         void StatRequests(const json::Array&, std::ostream&) const;
 
     };
