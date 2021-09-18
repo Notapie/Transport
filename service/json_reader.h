@@ -14,8 +14,8 @@ namespace transport_catalogue::service {
     private:
         const TransportCatalogue& db_;
 
-        void BaseRequests(json::Array&) const;
-        void StatRequests(json::Array&, std::ostream&) const;
+        void BaseRequests(const json::Array&) const;
+        void StatRequests(const json::Array&, std::ostream&) const;
 
     };
 
