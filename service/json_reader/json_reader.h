@@ -4,7 +4,7 @@
 #include <string_view>
 
 #include "json/json.h"
-#include "request_handler.h"
+#include "service/request_handler/request_handler.h"
 #include "transport_catalogue/transport_catalogue.h"
 
 namespace transport_catalogue::service {
