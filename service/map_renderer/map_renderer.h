@@ -91,7 +91,15 @@ namespace transport_catalogue::service {
     };
 
     class MapRenderer {
+    public:
+        MapRenderer() = default;
+        MapRenderer(const RenderSettings& settings);
 
+        void Render(const std::deque<domain::Bus>& buses, std::ostream& out) const;
+        void UpdateSettings(const RenderSettings& settings);
+
+    private:
+        RenderSettings settings_;
     };
 
 } // namespace transport_catalogue::service
