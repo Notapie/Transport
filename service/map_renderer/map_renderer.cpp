@@ -11,4 +11,6 @@ namespace transport_catalogue::service {
 
     } // namespace detail
 
+    MapRenderer::MapRenderer(const RenderSettings& settings) : settings_(settings) {}
+
 } // namespace transport_catalogue::service
