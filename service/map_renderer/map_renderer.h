@@ -72,24 +72,28 @@ namespace transport_catalogue::service {
     } // namespace detail
 
     struct RenderSettings {
-        double width = 0.0;
-        double height = 0.0;
+        double width = 200.0;
+        double height = 200.0;
 
-        double padding = 0.0;
+        double padding = 30.0;
 
-        double linew_width = 0.0;
-        double stop_radius = 0.0;
+        double linew_width = 14.0;
+        double stop_radius = 5.0;
 
-        int bus_label_font_size = 0;
-        geo::Coordinates bus_label_offsets;
+        int bus_label_font_size = 20;
+        geo::Coordinates bus_label_offsets = {7.0, 15.0};
 
-        int stop_label_font_size = 0;
-        geo::Coordinates stop_label_offsets;
+        int stop_label_font_size = 20;
+        geo::Coordinates stop_label_offsets = {7.0, -3.0};
 
-        svg::Color underlayer_color;
-        double underlayer_width = 0.0;
+        svg::Color underlayer_color = svg::Rgba{255, 255, 255, 0.85};
+        double underlayer_width = 3.0;
 
-        std::vector<svg::Color> color_palette;
+        std::vector<svg::Color> color_palette {
+                "green",
+                svg::Rgb{255, 160, 0},
+                "red"
+        };
     };
 
     class MapRenderer {
