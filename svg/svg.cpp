@@ -195,12 +195,12 @@ namespace svg {
         << "\""sv;
 
         //толщина шрифта
-        if (font_weight_ != ""s) {
+        if (!font_weight_.empty()) {
             out << " font-weight=\""sv << font_weight_ << "\""sv;
         }
 
         //семейство шрифта
-        if (font_weight_ != ""s) {
+        if (!font_family_.empty()) {
             out << " font-family=\""sv << font_family_ << "\""sv;
         }
 
