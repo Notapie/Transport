@@ -36,6 +36,8 @@ namespace transport_catalogue {
         RouteInfo GetRouteInfo(std::string_view bus_name) const;
         std::vector<std::string> GetStopBuses(std::string_view stop_name) const;
 
+        const std::deque<Bus>& GetBuses() const;
+
     private:
         std::deque<Stop> stops_source_;
         std::deque<Bus> buses_source_;

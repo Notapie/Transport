@@ -146,4 +146,8 @@ namespace transport_catalogue {
         return name_to_stop_.count(stop_name) > 0;
     }
 
+    const std::deque<Bus>& TransportCatalogue::GetBuses() const {
+        return buses_source_;
+    }
+
 } //namespace transport_catalogue
