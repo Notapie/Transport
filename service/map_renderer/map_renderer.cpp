@@ -16,7 +16,7 @@ namespace transport_catalogue::service {
         }
 
         bool StopPtrComparator::operator()(const domain::Stop *lhs, const domain::Stop *rhs) const {
-            return lhs->name < rhs->name;
+            return rhs->name > lhs->name;
         }
 
     } // namespace detail
@@ -44,7 +44,7 @@ namespace transport_catalogue::service {
         }
 
         std::sort(sorted_buses.begin(), sorted_buses.end(), [](const domain::Bus* lhs, const domain::Bus* rhs) {
-            return lhs->name < rhs->name;
+            return rhs->name > lhs->name;
         });
 
         //создаём проектор
@@ -61,6 +61,10 @@ namespace transport_catalogue::service {
 
         canvas.Render(out);
     }
+
+    /*
+     * Дальше вспомогательные методы
+     */
 
     void MapRenderer::InsertLines(svg::Document& canvas, const detail::SphereProjector& projector,
                                   const std::vector<const domain::Bus*>& sorted_buses) const {
