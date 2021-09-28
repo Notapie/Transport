@@ -11,33 +11,31 @@ namespace transport_catalogue::service {
     namespace detail {
 
         inline const double EPSILON = 1e-6;
-        bool IsZero(double value) {
-            return std::abs(value) < EPSILON;
-        }
+        bool IsZero(double value);
 
         class SphereProjector {
         public:
-            template <typename PointInputIt>
-            SphereProjector(PointInputIt points_begin, PointInputIt points_end, double max_width,
+            template <typename StopInputIt>
+            SphereProjector(StopInputIt stops_begin, StopInputIt stops_end, double max_width,
                             double max_height, double padding)
                     : padding_(padding) {
-                if (points_begin == points_end) {
+                if (stops_begin == stops_end) {
                     return;
                 }
 
                 const auto [left_it, right_it]
-                = std::minmax_element(points_begin, points_end, [](auto lhs, auto rhs) {
-                    return lhs.lng < rhs.lng;
+                = std::minmax_element(stops_begin, stops_end, [](const auto lhs, const auto rhs) {
+                    return lhs->coords.lng < rhs->coords.lng;
                 });
-                min_lon_ = left_it->lng;
-                const double max_lon = right_it->lng;
+                min_lon_ = (*left_it)->coords.lng;
+                const double max_lon = (*right_it)->coords.lng;
 
                 const auto [bottom_it, top_it]
-                = std::minmax_element(points_begin, points_end, [](auto lhs, auto rhs) {
-                    return lhs.lat < rhs.lat;
+                = std::minmax_element(stops_begin, stops_end, [](const auto lhs, const auto rhs) {
+                    return lhs->coords.lat < rhs->coords.lat;
                 });
-                const double min_lat = bottom_it->lat;
-                max_lat_ = top_it->lat;
+                const double min_lat = (*bottom_it)->coords.lat;
+                max_lat_ = (*top_it)->coords.lat;
 
                 std::optional<double> width_zoom;
                 if (!IsZero(max_lon - min_lon_)) {
