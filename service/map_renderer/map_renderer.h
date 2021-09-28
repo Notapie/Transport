@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <set>
 
 #include "svg/svg.h"
 #include "transport_catalogue/domain.h"
@@ -106,6 +107,19 @@ namespace transport_catalogue::service {
 
     private:
         RenderSettings settings_;
+
+        //дальше создание слоёв карты
+        void InsertLines(svg::Document& canvas, const detail::SphereProjector& projector,
+                         const std::vector<const domain::Bus*>& sorted_buses) const;
+
+        void InsertRouteNames(svg::Document& canvas, const detail::SphereProjector& projector,
+                              const std::vector<const domain::Bus*>& sorted_buses) const;
+
+        void InsertStopSymbols(svg::Document& canvas, const detail::SphereProjector& projector,
+                               const std::set<const domain::Stop*, detail::StopPtrComparator>& sorted_stops) const;
+
+        void InsertStopNames(svg::Document& canvas, const detail::SphereProjector& projector,
+                               const std::set<const domain::Stop*, detail::StopPtrComparator>& sorted_stops) const;
     };
 
 } // namespace transport_catalogue::service
