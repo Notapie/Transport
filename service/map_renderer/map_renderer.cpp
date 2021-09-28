@@ -16,7 +16,7 @@ namespace transport_catalogue::service {
         }
 
         bool StopPtrComparator::operator()(const domain::Stop *lhs, const domain::Stop *rhs) const {
-            return lhs->name > rhs->name;
+            return lhs->name < rhs->name;
         }
 
     } // namespace detail
