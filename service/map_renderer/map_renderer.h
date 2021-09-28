@@ -65,6 +65,10 @@ namespace transport_catalogue::service {
             double zoom_coeff_ = 0;
         };
 
+        struct StopPtrComparator {
+            bool operator()(const domain::Stop*lhs, const domain::Stop* rhs) const;
+        };
+
     } // namespace detail
 
     struct RenderSettings {
