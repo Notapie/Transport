@@ -78,7 +78,7 @@ namespace transport_catalogue::service {
 
         double padding = 50.0;
 
-        double linew_width = 14.0;
+        double line_width = 14.0;
         double stop_radius = 5.0;
 
         int bus_label_font_size = 20;

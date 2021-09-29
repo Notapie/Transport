@@ -77,7 +77,7 @@ namespace transport_catalogue::service {
                         settings_.color_palette.at(i++ % settings_.color_palette.size())
                 );
             }
-            route->SetFillColor(svg::NoneColor).SetStrokeWidth(settings_.linew_width)
+            route->SetFillColor(svg::NoneColor).SetStrokeWidth(settings_.line_width)
                     .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
                     .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
 
