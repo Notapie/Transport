@@ -22,7 +22,7 @@ namespace transport_catalogue::service {
             const json::Array& offsets = list.at(setting).AsArray();
             return {
                     offsets.at(0).AsDouble(),
-                    offsets.at(0).AsDouble(),
+                    offsets.at(1).AsDouble(),
             };
         }
         return {};
