@@ -26,6 +26,7 @@ namespace transport_catalogue::service {
         // Вспомогательные методы StatRequests
         json::Dict BusStat(std::string_view bus_name, int request_id) const;
         json::Dict StopStat(std::string_view stop_name, int request_id) const;
+        json::Dict RenderMap(int request_id) const;
 
     };
 
