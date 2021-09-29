@@ -1,4 +1,5 @@
 #include "service/json_reader/json_reader.h"
+#include "transport_catalogue/transport_catalogue.h"
 
 #include <iostream>
 
