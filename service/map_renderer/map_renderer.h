@@ -67,7 +67,7 @@ namespace transport_catalogue::service {
         };
 
         struct StopPtrComparator {
-            bool operator()(const domain::Stop*lhs, const domain::Stop* rhs) const;
+            bool operator()(const domain::Stop* lhs, const domain::Stop* rhs) const;
         };
 
     } // namespace detail

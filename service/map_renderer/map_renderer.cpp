@@ -15,7 +15,7 @@ namespace transport_catalogue::service {
                     (max_lat_ - coords.lat) * zoom_coeff_ + padding_};
         }
 
-        bool StopPtrComparator::operator()(const domain::Stop *lhs, const domain::Stop *rhs) const {
+        bool StopPtrComparator::operator()(const domain::Stop* lhs, const domain::Stop* rhs) const {
             return rhs->name > lhs->name;
         }
 
