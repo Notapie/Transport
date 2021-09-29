@@ -23,8 +23,14 @@ namespace transport_catalogue::service {
 
     MapRenderer::MapRenderer(const RenderSettings& settings) : settings_(settings) {}
 
+    MapRenderer::MapRenderer(RenderSettings&& settings) : settings_(std::move(settings)) {}
+
     void MapRenderer::UpdateSettings(const RenderSettings& settings) {
         settings_ = settings;
+    }
+
+    void MapRenderer::UpdateSettings(RenderSettings&& settings) {
+        settings_ = std::move(settings);
     }
 
     void MapRenderer::Render(const std::deque<domain::Bus>& buses, std::ostream& out) const {
