@@ -2,6 +2,8 @@
 
 #include <set>
 
+using namespace std::literals;
+
 namespace transport_catalogue::service {
 
     namespace detail {
@@ -110,7 +112,7 @@ namespace transport_catalogue::service {
             const domain::Stop* fist_stop_ptr = bus_ptr->route.at(0);
             bus_title_background.SetOffset(settings_.bus_label_offsets)
                     .SetFontSize(settings_.bus_label_font_size)
-                    .SetFontFamily("Verdana").SetFontWeight("bold").SetData(bus_ptr->name)
+                    .SetFontFamily("Verdana"s).SetFontWeight("bold"s).SetData(bus_ptr->name)
                     .SetPosition(projector(fist_stop_ptr->coords));
 
             svg::Text bus_title(bus_title_background);
@@ -146,7 +148,7 @@ namespace transport_catalogue::service {
         for (const domain::Stop* stop_ptr : sorted_stops) {
             std::unique_ptr<svg::Circle> circle(std::make_unique<svg::Circle>());
             circle->SetCenter(projector(stop_ptr->coords))
-                    .SetRadius(settings_.stop_radius).SetFillColor("white");
+                    .SetRadius(settings_.stop_radius).SetFillColor("white"s);
             canvas.AddPtr(std::move(circle));
         }
     }
@@ -160,11 +162,11 @@ namespace transport_catalogue::service {
 
             stop_title_background->SetOffset(settings_.stop_label_offsets)
                     .SetFontSize(settings_.stop_label_font_size)
-                    .SetFontFamily("Verdana").SetData(stop_ptr->name)
+                    .SetFontFamily("Verdana"s).SetData(stop_ptr->name)
                     .SetPosition(projector(stop_ptr->coords));
 
             std::unique_ptr<svg::Text> stop_title(std::make_unique<svg::Text>(*stop_title_background));
-            stop_title->SetFillColor("black");
+            stop_title->SetFillColor("black"s);
 
             stop_title_background->SetFillColor(settings_.underlayer_color)
                     .SetStrokeColor(settings_.underlayer_color).SetStrokeWidth(settings_.underlayer_width)
