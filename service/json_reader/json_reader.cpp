@@ -4,8 +4,7 @@
 #include <deque>
 #include <vector>
 #include <unordered_map>
-
-#include "service/map_renderer/map_renderer.h"
+#include <sstream>
 
 namespace transport_catalogue::service {
     using namespace std::literals;
@@ -106,6 +105,9 @@ namespace transport_catalogue::service {
         if (root.count("base_requests"s)) {
             BaseRequests(root.at("base_requests"s).AsArray());
         }
+        if (root.count("render_settings"s)) {
+            map_renderer_.UpdateSettings(ParseRenderSettings(root.at("render_settings"s).AsMap()));
+        }
         if (root.count("stat_requests"s)) {
             StatRequests(root.at("stat_requests"s).AsArray(), output);
         }
@@ -169,13 +171,16 @@ namespace transport_catalogue::service {
             const json::Dict& request = request_node.AsMap();
 
             std::string_view type = request.at("type"s).AsString();
-            std::string_view name = request.at("name"s).AsString();
             int request_id = request.at("id"s).AsInt();
             if (type == "Bus"sv) {
-                response.push_back(BusStat(name, request_id));
+                response.push_back(BusStat(request.at("name"s).AsString(), request_id));
                 continue;
             }
-            response.push_back(StopStat(name, request_id));
+            if (type == "Stop"sv) {
+                response.push_back(StopStat(request.at("name"s).AsString(), request_id));
+                continue;
+            }
+            response.push_back(RenderMap(request_id));
         }
         json::Print(json::Document{std::move(response)}, out);
     }
@@ -218,6 +223,15 @@ namespace transport_catalogue::service {
         response["buses"s] = std::move(buses_array);
 
         return response;
+    }
+
+    json::Dict JsonReader::RenderMap(int request_id) const {
+        std::ostringstream oss;
+        map_renderer_.Render(db_.GetBuses(), oss);
+        return {
+                {"map", oss.str()},
+                {"request_id", request_id}
+        };
     }
 
 } // namespace transport_catalogue::service
