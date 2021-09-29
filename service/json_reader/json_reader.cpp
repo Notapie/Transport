@@ -5,8 +5,97 @@
 #include <vector>
 #include <unordered_map>
 
+#include "service/map_renderer/map_renderer.h"
+
 namespace transport_catalogue::service {
     using namespace std::literals;
+
+    double GetDoubleSetting(const json::Dict& list, const std::string& setting) {
+        return list.count(setting) > 0 && list.at(setting).IsDouble() ? list.at(setting).AsDouble() : 0.0;
+    }
+
+    int GetIntSetting(const json::Dict& list, const std::string& setting) {
+        return list.count(setting) > 0 && list.at(setting).IsInt() ? list.at(setting).AsInt() : 0;
+    }
+
+    svg::Point GetPointSetting(const json::Dict& list, const std::string& setting) {
+        if (list.count(setting) > 0) {
+            const json::Array& offsets = list.at(setting).AsArray();
+            return {
+                    offsets.at(0).AsDouble(),
+                    offsets.at(0).AsDouble(),
+            };
+        }
+        return {};
+    }
+
+    svg::Color GetColor(const json::Node& color_node) {
+        if (color_node.IsArray()) {
+            const json::Array& props = color_node.AsArray();
+            if (props.size() == 3) {
+                return svg::Rgb {
+                    static_cast<uint8_t>(props.at(0).AsInt()),
+                    static_cast<uint8_t>(props.at(1).AsInt()),
+                    static_cast<uint8_t>(props.at(2).AsInt()),
+                };
+            }
+            return svg::Rgba {
+                    static_cast<uint8_t>(props.at(0).AsInt()),
+                    static_cast<uint8_t>(props.at(1).AsInt()),
+                    static_cast<uint8_t>(props.at(2).AsInt()),
+                    props.at(3).AsDouble(),
+            };
+        } else if (color_node.IsString()) {
+            return color_node.AsString();
+        }
+        return {};
+    }
+
+    svg::Color GetColorSetting(const json::Dict& list, const std::string& setting) {
+        if (list.count(setting) > 0) {
+            return GetColor(list.at(setting));
+        }
+        return {};
+    }
+
+    std::vector<svg::Color> GetColorsVector(const json::Dict& list, const std::string& setting) {
+        if (list.count(setting) == 0) {
+            return {};
+        }
+        const json::Array& raw_colors = list.at(setting).AsArray();
+
+        std::vector<svg::Color> result;
+        result.reserve(raw_colors.size());
+
+        for (const json::Node& color_node : raw_colors) {
+            result.push_back(GetColor(color_node));
+        }
+
+        return result;
+    }
+
+    RenderSettings ParseRenderSettings(const json::Dict& settings) {
+        return {
+                GetDoubleSetting(settings, "width"s),
+                GetDoubleSetting(settings, "height"s),
+
+                GetDoubleSetting(settings, "padding"s),
+
+                GetDoubleSetting(settings, "line_width"s),
+                GetDoubleSetting(settings, "stop_radius"s),
+
+                GetIntSetting(settings, "bus_label_font_size"s),
+                GetPointSetting(settings, "bus_label_offset"s),
+
+                GetIntSetting(settings, "stop_label_font_size"s),
+                GetPointSetting(settings, "stop_label_offset"s),
+
+                GetColorSetting(settings, "underlayer_color"s),
+                GetDoubleSetting(settings, "underlayer_width"s),
+
+                GetColorsVector(settings, "color_palette"s)
+        };
+    }
 
     JsonReader::JsonReader(TransportCatalogue& db) : db_(db) {}
 
