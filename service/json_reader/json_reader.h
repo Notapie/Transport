@@ -6,6 +6,7 @@
 #include "json/json.h"
 #include "service/request_handler/request_handler.h"
 #include "transport_catalogue/transport_catalogue.h"
+#include "service/map_renderer/map_renderer.h"
 
 namespace transport_catalogue::service {
 
@@ -16,6 +17,7 @@ namespace transport_catalogue::service {
 
     private:
         TransportCatalogue& db_;
+        MapRenderer map_renderer_;
 
         void BaseRequests(const json::Array&);
         // Вспомогательные методы BaseRequests
