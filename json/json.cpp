@@ -197,17 +197,38 @@ namespace json {
         Node LoadDict(istream& input) {
             Dict result;
             char c;
-            for (; input >> c && c != '}';) {
-                if (c == ',') {
+
+            bool first = true;
+            while (input >> c && c != '}') {
+                //сначала проверям на наличие запятой, если элемент не первый
+                if (!first) {
+                    if (c != ',') {
+                        throw ParsingError("Failed attempt to parse Dictionary!"s);
+                    }
                     input >> c;
                 }
+                first = false;
+
+                //тут проверяем на первую кавычку, чтобы убедиться, что ключом будет точно строка
+                if (c != '"') {
+                    throw ParsingError("Failed attempt to parse Dictionary!"s);
+                }
+
                 string key = LoadString(input).AsString();
                 input >> c;
+
+                //здесь проверяем, что ключ со значением разделены двоеточием
+                if (c != ':') {
+                    throw ParsingError("Failed attempt to parse Dictionary!"s);
+                }
+
                 result.insert({move(key), LoadNode(input)});
             }
+
             if (c != '}') {
                 throw ParsingError("Failed attempt to parse Dictionary! There is no second bracket"s);
             }
+
             return Node(move(result));
         }
 
