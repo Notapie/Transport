@@ -103,17 +103,17 @@ namespace transport_catalogue::service {
         const json::Dict& queries = json_raw.GetRoot().AsMap();
 
         if (queries.count("base_requests"s)) {
-            BaseRequests(queries.at("base_requests"s).AsArray());
+            HandleBaseRequests(queries.at("base_requests"s).AsArray());
         }
         if (queries.count("render_settings"s)) {
             map_renderer_.UpdateSettings(ParseRenderSettings(queries.at("render_settings"s).AsMap()));
         }
         if (queries.count("stat_requests"s)) {
-            StatRequests(queries.at("stat_requests"s).AsArray(), output);
+            HandleStatRequests(queries.at("stat_requests"s).AsArray(), output);
         }
     }
 
-    void JsonReader::BaseRequests(const json::Array& requests) {
+    void JsonReader::HandleBaseRequests(const json::Array& requests) {
         std::unordered_map<std::string_view, const json::Dict*> stop_to_distances;
         std::deque<const json::Dict*> bus_requests;
 
@@ -164,7 +164,7 @@ namespace transport_catalogue::service {
         }
     }
 
-    void JsonReader::StatRequests(const json::Array& requests, std::ostream& out) const {
+    void JsonReader::HandleStatRequests(const json::Array& requests, std::ostream& out) const {
         json::Array response;
         response.reserve(requests.size());
         for (const json::Node& request_node : requests) {
@@ -173,10 +173,10 @@ namespace transport_catalogue::service {
             std::string_view type = request.at("type"s).AsString();
             int request_id = request.at("id"s).AsInt();
             if (type == "Bus"sv) {
-                response.push_back(BusStat(request.at("name"s).AsString(), request_id));
+                response.push_back(GetBusStat(request.at("name"s).AsString(), request_id));
                 continue;
             } else if (type == "Stop"sv) {
-                response.push_back(StopStat(request.at("name"s).AsString(), request_id));
+                response.push_back(GetStopStat(request.at("name"s).AsString(), request_id));
                 continue;
             } else if (type == "Map"sv) {
                 response.push_back(RenderMap(request_id));
@@ -185,7 +185,7 @@ namespace transport_catalogue::service {
         json::Print(json::Document{std::move(response)}, out);
     }
 
-    json::Dict JsonReader::BusStat(std::string_view bus_name, int request_id) const {
+    json::Dict JsonReader::GetBusStat(std::string_view bus_name, int request_id) const {
         if (!db_.IsBusExists(bus_name)) {
             return json::Dict {
                 {"request_id"s, request_id},
@@ -202,7 +202,7 @@ namespace transport_catalogue::service {
         };
     }
 
-    json::Dict JsonReader::StopStat(std::string_view stop_name, int request_id) const {
+    json::Dict JsonReader::GetStopStat(std::string_view stop_name, int request_id) const {
         if (!db_.IsStopExists(stop_name)) {
             return json::Dict {
                 {"request_id"s, request_id},
