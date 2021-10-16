@@ -175,12 +175,12 @@ namespace transport_catalogue::service {
             if (type == "Bus"sv) {
                 response.push_back(BusStat(request.at("name"s).AsString(), request_id));
                 continue;
-            }
-            if (type == "Stop"sv) {
+            } else if (type == "Stop"sv) {
                 response.push_back(StopStat(request.at("name"s).AsString(), request_id));
                 continue;
+            } else if (type == "Map"sv) {
+                response.push_back(RenderMap(request_id));
             }
-            response.push_back(RenderMap(request_id));
         }
         json::Print(json::Document{std::move(response)}, out);
     }
