@@ -168,36 +168,43 @@ namespace json {
             return Node();
         }
 
-        bool IsStringValid(string_view raw_str) {
-            size_t end = raw_str.npos;
-            size_t pos = raw_str.find('\\');
-            while (pos != end) {
-                if (pos + 1 == raw_str.size()) {
-                    return false;
-                }
-                char b = raw_str.at(pos + 1);
-                if (!(b == '\\' || b == '"' || b == 'n' || b == 'r' || b == 't')) {
-                    return false;
-                }
-                pos = raw_str.find('\\', pos + 2);
-            }
-            return true;
-        }
-
         Node LoadString(istream& input) {
-            if (input.peek() == EOF) {
+            if (!input) {
                 throw ParsingError("Failed attempt to parse string! There is no second quote"s);
             }
             string line;
-            getline(input, line, '"');
-            while (!IsStringValid(line) && input.peek() != EOF) {
-                string temp;
-                getline(input, temp, '"');
-                line += "\""s + temp;
+
+            //new_seq - флаг, обозначающий, что началась последовательность управляющего символа
+            bool new_seq = false;
+            while (input) {
+                char c;
+                input >> c;
+
+                //сначала нужно проверить, нет ли у нас открытого начала последовательности
+                if (new_seq) {
+                    //если есть, то следующим символом должен быть один из списка
+                    //если идёт какай-то другой символ, кидаем исключение
+                    if (!(c == '\\' || c == '"' || c == 'n' || c == 'r' || c == 't')) {
+                        throw ParsingError("Failed attempt to parse string!"s);
+                    }
+                    line += c;
+                    new_seq = false;
+                    continue;
+                }
+
+                //если открытой последовательности у нас нет, нужно проверить, не начинается ли она
+                if (c == '\\') {
+                    new_seq = true;
+                }
+
+                //если открытой последовательности нет и текущий сивол - ", значит, парсинг строки завершён
+                if (c == '\"') {
+                    break;
+                }
+
+                line += c;
             }
-            if (input.unget().get() != '\"' || !IsStringValid(line)) {
-                throw ParsingError("Failed attempt to parse string!"s);
-            }
+
             return Node(InputPrepare(line));
         }
 
