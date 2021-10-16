@@ -37,10 +37,16 @@ namespace json {
         Node LoadArray(istream& input) {
             Array result;
             char c;
-            for (; input >> c && c != ']';) {
-                if (c != ',') {
+            bool first = true;
+            while (input >> c && c != ']') {
+                if (first) {
                     input.putback(c);
+                } else {
+                    if (c != ',') {
+                        throw ParsingError("Failed attempt to parse Array!"s);
+                    }
                 }
+                first = false;
                 result.push_back(LoadNode(input));
             }
             if (c != ']') {
