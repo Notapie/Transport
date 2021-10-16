@@ -67,24 +67,13 @@ namespace transport_catalogue {
         };
     }
 
-    std::vector<std::string> TransportCatalogue::GetStopBuses(std::string_view stop_name) const {
-        if (!IsStopExists(stop_name)) {
-            return {};
-        }
-
+    const std::set<std::string_view>& TransportCatalogue::GetStopBuses(std::string_view stop_name) const {
         Stop* stop = name_to_stop_.at(stop_name);
         if (stop_to_buses_.count(stop) == 0) {
-            return {};
+            static const std::set<std::string_view> empty_result;
+            return empty_result;
         }
-        const std::set<std::string_view>& buses = stop_to_buses_.at(stop);
-
-        std::vector<std::string> result;
-        result.reserve(buses.size());
-        for (std::string_view bus : buses) {
-            result.emplace_back(bus);
-        }
-
-        return result;
+        return stop_to_buses_.at(stop);
     }
 
     int TransportCatalogue::GetRealLength(Stop* first_stop, Stop* second_stop) const {

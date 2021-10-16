@@ -34,7 +34,7 @@ namespace transport_catalogue {
         bool IsStopExists(std::string_view stop_name) const noexcept;
 
         RouteInfo GetRouteInfo(std::string_view bus_name) const;
-        std::vector<std::string> GetStopBuses(std::string_view stop_name) const;
+        const std::set<std::string_view>& GetStopBuses(std::string_view stop_name) const;
 
         const std::deque<Bus>& GetBuses() const;
 

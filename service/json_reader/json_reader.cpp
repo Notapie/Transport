@@ -209,7 +209,7 @@ namespace transport_catalogue::service {
                 {"error_message"s, "not found"s}
             };
         }
-        std::vector<std::string> buses = db_.GetStopBuses(stop_name);
+        const std::set<std::string_view>& buses = db_.GetStopBuses(stop_name);
 
         json::Array buses_array;
         buses_array.reserve(buses.size());
@@ -217,8 +217,8 @@ namespace transport_catalogue::service {
             {"request_id"s, request_id},
         };
 
-        for (std::string& bus : buses) {
-            buses_array.emplace_back(std::move(bus));
+        for (std::string_view bus : buses) {
+            buses_array.push_back(std::string(bus));
         }
         response["buses"s] = std::move(buses_array);
 
