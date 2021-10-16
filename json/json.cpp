@@ -143,15 +143,12 @@ namespace json {
 
 
         Node LoadString(istream& input) {
-            if (!input) {
-                throw ParsingError("Failed attempt to parse string! There is no second quote"s);
-            }
             string line;
+            char c;
 
             //new_seq - флаг, обозначающий, что началась последовательность управляющего символа
             bool new_seq = false;
-            do {
-                char c;
+            while (input) {
                 input >> c;
 
                 //сначала нужно проверить, нет ли у нас открытого начала последовательности
@@ -187,13 +184,12 @@ namespace json {
                     break;
                 }
 
-                //если поток кончился, а кавычки так и не было, кидаем исключение о незакрытой строке
-                if (!input) {
-                    throw ParsingError("Failed attempt to parse string! There is no second quote"s);
-                }
-
                 line += c;
-            } while (input);
+            }
+
+            if (c != '"') {
+                throw ParsingError("Failed attempt to parse string! There is no second quote"s);
+            }
 
             return Node(move(line));
         }
