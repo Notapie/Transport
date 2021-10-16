@@ -93,7 +93,7 @@ namespace transport_catalogue::service {
                 route->AddPoint(projector(stop_ptr->coords));
             }
 
-            if (bus_ptr->type == domain::RouteType::REVERSIBLE && bus_ptr->route.size() > 1) {
+            if (bus_ptr->type == domain::RouteType::ONE_WAY && bus_ptr->route.size() > 1) {
                 for (size_t k = bus_ptr->route.size() - 1; k >= 1; --k) {
                     route->AddPoint(projector(bus_ptr->route.at(k - 1)->coords));
                 }
@@ -131,7 +131,7 @@ namespace transport_catalogue::service {
             canvas.AddPtr(std::make_unique<svg::Text>(bus_title));
 
             const domain::Stop* last_stop_ptr = bus_ptr->route.at(bus_ptr->route.size() - 1);
-            if (fist_stop_ptr != last_stop_ptr && bus_ptr->type == domain::RouteType::REVERSIBLE) {
+            if (fist_stop_ptr != last_stop_ptr && bus_ptr->type == domain::RouteType::ONE_WAY) {
                 bus_title_background.SetPosition(projector(last_stop_ptr->coords));
                 bus_title.SetPosition(projector(last_stop_ptr->coords));
 

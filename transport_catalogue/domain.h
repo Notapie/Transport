@@ -8,8 +8,8 @@
 namespace transport_catalogue::domain {
 
     enum class RouteType {
-        ONE_SIDED,
-        REVERSIBLE
+        ROUND_TRIP,
+        ONE_WAY
     };
 
     struct Stop {
@@ -24,7 +24,7 @@ namespace transport_catalogue::domain {
 
         std::string name;
         std::vector<Stop*> route;
-        RouteType type = RouteType::ONE_SIDED;
+        RouteType type = RouteType::ROUND_TRIP;
     };
 
     struct RouteInfo {

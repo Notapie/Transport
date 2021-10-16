@@ -49,7 +49,7 @@ namespace transport_catalogue {
         const Bus& bus = *name_to_bus_.at(bus_name);
 
         size_t total_stops = bus.route.size();
-        if (bus.type == RouteType::REVERSIBLE) {
+        if (bus.type == RouteType::ONE_WAY) {
             total_stops = (total_stops * 2) - 1;
         }
 
@@ -91,7 +91,7 @@ namespace transport_catalogue {
             distance += geo::ComputeDistance(bus.route.at(i - 1)->coords, bus.route.at(i)->coords);
         }
 
-        if (bus.type == RouteType::REVERSIBLE) {
+        if (bus.type == RouteType::ONE_WAY) {
             distance *= 2;
         }
 
@@ -105,7 +105,7 @@ namespace transport_catalogue {
             distance += GetRealLength(bus.route[i - 1], bus.route[i]);
         }
 
-        if (bus.type == RouteType::REVERSIBLE) {
+        if (bus.type == RouteType::ONE_WAY) {
             for (size_t i = 1; i < bus.route.size(); ++i) {
                 distance += GetRealLength(bus.route[i], bus.route[i - 1]);
             }
