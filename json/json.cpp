@@ -150,7 +150,7 @@ namespace json {
 
             //new_seq - флаг, обозначающий, что началась последовательность управляющего символа
             bool new_seq = false;
-            while (input) {
+            do {
                 char c;
                 input >> c;
 
@@ -187,8 +187,13 @@ namespace json {
                     break;
                 }
 
+                //если поток кончился, а кавычки так и не было, кидаем исключение о незакрытой строке
+                if (!input) {
+                    throw ParsingError("Failed attempt to parse string! There is no second quote"s);
+                }
+
                 line += c;
-            }
+            } while (input);
 
             return Node(move(line));
         }
