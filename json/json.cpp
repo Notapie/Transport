@@ -123,14 +123,16 @@ namespace json {
             }
         }
 
-        Node LoadBool(istream& input) {
-            string str_value;
-            str_value.reserve(5);
-            str_value.resize(4);
-            input.read(&str_value[0], 4);
-            if (str_value[3] == 's') {
-                str_value += static_cast<char>(input.get());
+        string ReadChars(istream& input) {
+            string result;
+            while (isalpha(input.peek())) {
+                result += static_cast<char>(input.get());
             }
+            return result;
+        }
+
+        Node LoadBool(istream& input) {
+            string str_value = ReadChars(input);
             if (str_value != "true"sv && str_value != "false"sv) {
                 throw ParsingError("Failed attempt to parse bool!"s);
             }
@@ -138,15 +140,12 @@ namespace json {
         }
 
         Node LoadNull(istream& input) {
-            string str_value;
-            str_value.resize(4);
-            input.read(&str_value[0], 4);
+            string str_value = ReadChars(input);
             if (str_value != "null"sv) {
                 throw ParsingError("Failed attempt to parse null!"s);
             }
             return Node();
         }
-
 
         Node LoadString(istream& input) {
             string line;
