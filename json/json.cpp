@@ -32,33 +32,6 @@ namespace json {
             return result;
         }
 
-        //Скользящая обработка перед сохранением
-        std::string InputPrepare(std::string_view raw_str) {
-            std::string result(raw_str);
-
-            std::unordered_map<char, char> pattern_to_char {
-                {'\\', '\\'},
-                {'"', '\"'},
-                {'n', '\n'},
-                {'r', '\r'},
-                {'t', '\t'},
-            };
-
-            size_t end = result.npos;
-            size_t pos = result.find('\\');
-            while (pos != end && pos + 1 < result.size()) {
-                char b = result.at(pos + 1);
-
-                if (b == '\\' || b == '"' || b == 'n' || b == 'r' || b == 't') {
-                    result.replace(pos, 2, std::string(1, pattern_to_char.at(b)));
-                }
-
-                pos = result.find('\\', pos + 1);
-            }
-
-            return result;
-        }
-
         Node LoadNode(istream& input);
 
         Node LoadArray(istream& input) {
@@ -168,6 +141,7 @@ namespace json {
             return Node();
         }
 
+
         Node LoadString(istream& input) {
             if (!input) {
                 throw ParsingError("Failed attempt to parse string! There is no second quote"s);
@@ -187,7 +161,17 @@ namespace json {
                     if (!(c == '\\' || c == '"' || c == 'n' || c == 'r' || c == 't')) {
                         throw ParsingError("Failed attempt to parse string!"s);
                     }
-                    line += c;
+
+                    //в строку вставляем сразу нужный управляющий символ
+                    static const std::unordered_map<char, char> pattern_to_char {
+                            {'\\', '\\'},
+                            {'"', '\"'},
+                            {'n', '\n'},
+                            {'r', '\r'},
+                            {'t', '\t'},
+                    };
+                    line += pattern_to_char.at(c);
+
                     new_seq = false;
                     continue;
                 }
@@ -195,6 +179,7 @@ namespace json {
                 //если открытой последовательности у нас нет, нужно проверить, не начинается ли она
                 if (c == '\\') {
                     new_seq = true;
+                    continue;
                 }
 
                 //если открытой последовательности нет и текущий сивол - ", значит, парсинг строки завершён
@@ -205,7 +190,7 @@ namespace json {
                 line += c;
             }
 
-            return Node(InputPrepare(line));
+            return Node(move(line));
         }
 
         Node LoadDict(istream& input) {
