@@ -160,7 +160,7 @@ namespace transport_catalogue::service {
             }
 
             bool is_roundtrip = request->at("is_roundtrip"s).AsBool();
-            db_.AddBus(bus_name, stops, is_roundtrip ? '>' : '-');
+            db_.AddBus(bus_name, stops, is_roundtrip ? RouteType::ONE_SIDED : RouteType::REVERSIBLE);
         }
     }
 

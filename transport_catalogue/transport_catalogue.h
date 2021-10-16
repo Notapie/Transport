@@ -28,7 +28,7 @@ namespace transport_catalogue {
         void AddStop(std::string_view name, double latitude, double longitude);
         void AddDistance(std::string_view stop_name, std::string_view destination_name, int distace);
 
-        void AddBus(std::string_view name, const std::vector<std::string_view>& raw_route, char route_type);
+        void AddBus(std::string_view name, const std::vector<std::string_view>& raw_route, RouteType type);
 
         bool IsBusExists(std::string_view bus_name) const noexcept;
         bool IsStopExists(std::string_view stop_name) const noexcept;

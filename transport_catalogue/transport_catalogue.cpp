@@ -20,7 +20,7 @@ namespace transport_catalogue {
         name_to_stop_[new_stop_ptr->name] = new_stop_ptr;
     }
 
-    void TransportCatalogue::AddBus(std::string_view name, const std::vector<std::string_view>& raw_route, char route_type) {
+    void TransportCatalogue::AddBus(std::string_view name, const std::vector<std::string_view>& raw_route, RouteType type) {
         std::vector<Stop*> route;
         route.reserve(raw_route.size());
 
@@ -31,7 +31,7 @@ namespace transport_catalogue {
         Bus* new_bus_ptr = &buses_source_.emplace_back(
                 name,
                 route,
-                route_type
+                type
         );
         name_to_bus_[new_bus_ptr->name] = new_bus_ptr;
 

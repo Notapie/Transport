@@ -20,7 +20,7 @@ namespace transport_catalogue::domain {
     };
 
     struct Bus {
-        Bus(std::string_view bus_name, std::vector<Stop*>& bus_route, char route_type);
+        Bus(std::string_view bus_name, std::vector<Stop*>& bus_route, RouteType type);
 
         std::string name;
         std::vector<Stop*> route;
