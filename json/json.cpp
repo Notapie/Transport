@@ -8,27 +8,26 @@ namespace json {
 
     namespace {
 
-        //Заменяет все подстроки pattern на подстроку replace
-        void ReplaceAll(std::string& text, std::string_view pattern, std::string_view replace) {
-            size_t end = text.npos;
-            size_t replace_size = replace.size();
-            size_t pattern_size = pattern.size();
-
-            size_t pos = text.find(pattern);
-            while (pos != end) {
-                text.replace(pos, pattern_size, replace);
-                pos = text.find(pattern, pos + replace_size);
-            }
-        }
-
         //Обработка перед выводом
         std::string OutPrepare(std::string_view raw_str) {
-            std::string result(raw_str);
-            ReplaceAll(result, "\\"sv, "\\\\"sv);
-            ReplaceAll(result, "\""sv, "\\\""sv);
-            ReplaceAll(result, "\n"sv, "\\n"sv);
-            ReplaceAll(result, "\r"sv, "\\r"sv);
-            ReplaceAll(result, "\t"sv, "\\t"sv);
+            std::string result;
+
+            static const unordered_map<char, string> pattern_to_result {
+                    {'\\', "\\\\"s},
+                    {'\"', "\\\""s},
+                    {'\n', "\\n"s},
+                    {'\r', "\\r"s},
+                    {'\t', "\\t"s},
+            };
+
+            for (const char c : raw_str) {
+                if (pattern_to_result.count(c) > 0) {
+                    result += pattern_to_result.at(c);
+                    continue;
+                }
+                result += c;
+            }
+
             return result;
         }
 
