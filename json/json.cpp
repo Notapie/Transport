@@ -158,12 +158,6 @@ namespace json {
                 //сначала нужно проверить, нет ли у нас открытого начала последовательности
                 if (new_seq) {
                     //если есть, то следующим символом должен быть один из списка
-                    //если идёт какай-то другой символ, кидаем исключение
-                    if (!(c == '\\' || c == '"' || c == 'n' || c == 'r' || c == 't')) {
-                        throw ParsingError("Failed attempt to parse string!"s);
-                    }
-
-                    //в строку вставляем сразу нужный управляющий символ
                     static const std::unordered_map<char, char> pattern_to_char {
                             {'\\', '\\'},
                             {'"', '\"'},
@@ -171,6 +165,13 @@ namespace json {
                             {'r', '\r'},
                             {'t', '\t'},
                     };
+
+                    //если идёт какай-то другой символ, кидаем исключение
+                    if (pattern_to_char.count(c) == 0) {
+                        throw ParsingError("Failed attempt to parse string!"s);
+                    }
+
+                    //в строку вставляем сразу нужный управляющий символ
                     line += pattern_to_char.at(c);
 
                     new_seq = false;
