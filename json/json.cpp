@@ -152,6 +152,7 @@ namespace json {
 
             //new_seq - флаг, обозначающий, что началась последовательность управляющего символа
             bool new_seq = false;
+            bool string_closed = false;
             while (input) {
                 input >> c;
 
@@ -185,14 +186,15 @@ namespace json {
                 }
 
                 //если открытой последовательности нет и текущий сивол - ", значит, парсинг строки завершён
-                if (c == '\"') {
+                if (c == '"') {
+                    string_closed = true;
                     break;
                 }
 
                 line += c;
             }
 
-            if (c != '"') {
+            if (!string_closed) {
                 throw ParsingError("Failed attempt to parse string! There is no second quote"s);
             }
 
