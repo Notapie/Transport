@@ -103,6 +103,9 @@ namespace transport_catalogue::service {
     }
 
     void JsonReader::FillCatalogue() {
+        if (!json_raw_.GetRoot().IsMap()) {
+            return;
+        }
         const json::Dict& queries = json_raw_.GetRoot().AsMap();
         if (queries.count("base_requests"s)) {
             HandleBaseRequests(queries.at("base_requests"s).AsArray());
@@ -113,6 +116,9 @@ namespace transport_catalogue::service {
     }
 
     void JsonReader::GetStats(std::ostream& out) const {
+        if (!json_raw_.GetRoot().IsMap()) {
+            return;
+        }
         const json::Dict& queries = json_raw_.GetRoot().AsMap();
         if (queries.count("stat_requests"s)) {
             HandleStatRequests(queries.at("stat_requests"s).AsArray(), out);
