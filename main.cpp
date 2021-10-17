@@ -2,6 +2,7 @@
 #include "transport_catalogue/transport_catalogue.h"
 
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 using namespace transport_catalogue;
@@ -11,7 +12,16 @@ int main() {
 
     service::JsonReader json_reader(transport);
 
-    json_reader.ReadQueries(cin, cout);
+    json_reader.ReadJson(cin);
+    json_reader.FillCatalogue();
+
+    ofstream out("output.json"s);
+    if (!out) {
+        cerr << "Could not open output file!"sv;
+        return 0;
+    }
+
+    json_reader.GetStats(out);
 
     return 0;
 }

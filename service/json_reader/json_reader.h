@@ -12,11 +12,21 @@ namespace transport_catalogue::service {
     class JsonReader {
     public:
         JsonReader(TransportCatalogue& db);
-        void ReadQueries(std::istream& input, std::ostream& output);
+
+        // Читает из потока json и сохраняет его
+        void ReadJson(std::istream& in);
+
+        // Заполняет каталог из сохранённого json'а
+        void FillCatalogue();
+
+        // Обрабатывает запросы из сохранённого json'а и выводит результат в поток out
+        void GetStats(std::ostream& out) const;
 
     private:
         TransportCatalogue& db_;
         MapRenderer map_renderer_;
+
+        json::Document json_raw_;
 
         void HandleBaseRequests(const json::Array&);
         // Вспомогательные методы

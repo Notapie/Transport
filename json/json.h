@@ -58,6 +58,7 @@ class Node final : private Data {
 
     class Document {
     public:
+        Document() = default;
         explicit Document(Node root);
 
         const Node& GetRoot() const;

@@ -98,18 +98,24 @@ namespace transport_catalogue::service {
 
     JsonReader::JsonReader(TransportCatalogue& db) : db_(db) {}
 
-    void JsonReader::ReadQueries(std::istream& input, std::ostream& output) {
-        json::Document json_raw = json::Load(input);
-        const json::Dict& queries = json_raw.GetRoot().AsMap();
+    void JsonReader::ReadJson(std::istream& in) {
+        json_raw_ = json::Load(in);
+    }
 
+    void JsonReader::FillCatalogue() {
+        const json::Dict& queries = json_raw_.GetRoot().AsMap();
         if (queries.count("base_requests"s)) {
             HandleBaseRequests(queries.at("base_requests"s).AsArray());
         }
         if (queries.count("render_settings"s)) {
             map_renderer_.UpdateSettings(ParseRenderSettings(queries.at("render_settings"s).AsMap()));
         }
+    }
+
+    void JsonReader::GetStats(std::ostream& out) const {
+        const json::Dict& queries = json_raw_.GetRoot().AsMap();
         if (queries.count("stat_requests"s)) {
-            HandleStatRequests(queries.at("stat_requests"s).AsArray(), output);
+            HandleStatRequests(queries.at("stat_requests"s).AsArray(), out);
         }
     }
 
