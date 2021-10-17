@@ -19,12 +19,12 @@ namespace transport_catalogue::service {
         MapRenderer map_renderer_;
 
         void HandleBaseRequests(const json::Array&);
-        // Вспомогательные методы BaseRequests
+        // Вспомогательные методы
         void BusAddRequests(const std::deque<const json::Dict*>& requests);
         void InsertDistances(const std::unordered_map<std::string_view, const json::Dict*>& requests);
 
         void HandleStatRequests(const json::Array&, std::ostream&) const;
-        // Вспомогательные методы StatRequests
+        // Вспомогательные методы
         json::Dict GetBusStat(std::string_view bus_name, int request_id) const;
         json::Dict GetStopStat(std::string_view stop_name, int request_id) const;
         json::Dict RenderMap(int request_id) const;
