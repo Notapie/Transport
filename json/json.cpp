@@ -154,7 +154,7 @@ namespace json {
             bool new_seq = false;
             bool string_closed = false;
             while (input) {
-                input >> c;
+                c = input.get();
 
                 //сначала нужно проверить, нет ли у нас открытого начала последовательности
                 if (new_seq) {
