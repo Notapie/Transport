@@ -42,14 +42,14 @@ namespace json {
                     input.putback(c);
                 } else {
                     if (c != ',') {
-                        throw ParsingError("Failed attempt to parse Array!"s);
+                        throw ParsingError("Failed attempt to parse Array! There is no comma between items"s);
                     }
                 }
                 first = false;
                 result.push_back(LoadNode(input));
             }
             if (c != ']') {
-                throw ParsingError("Failed attempt to parse Array! There is no second bracket"s);
+                throw ParsingError("Failed attempt to parse Array! There is no end bracket"s);
             }
             return Node(move(result));
         }
@@ -169,7 +169,7 @@ namespace json {
 
                     //если идёт какай-то другой символ, кидаем исключение
                     if (pattern_to_char.count(c) == 0) {
-                        throw ParsingError("Failed attempt to parse string!"s);
+                        throw ParsingError("Failed attempt to parse string! Invalid escape sequence: \'\\"s + c + '\'');
                     }
 
                     //в строку вставляем сразу нужный управляющий символ
@@ -195,7 +195,7 @@ namespace json {
             }
 
             if (!string_closed) {
-                throw ParsingError("Failed attempt to parse string! There is no second quote"s);
+                throw ParsingError("Failed attempt to parse string! There is no end quote"s);
             }
 
             return Node(move(line));
@@ -210,7 +210,7 @@ namespace json {
                 //сначала проверям на наличие запятой, если элемент не первый
                 if (!first) {
                     if (c != ',') {
-                        throw ParsingError("Failed attempt to parse Dictionary!"s);
+                        throw ParsingError("Failed attempt to parse Dictionary! There is no comma between items"s);
                     }
                     input >> c;
                 }
@@ -218,7 +218,7 @@ namespace json {
 
                 //тут проверяем на первую кавычку, чтобы убедиться, что ключом будет точно строка
                 if (c != '"') {
-                    throw ParsingError("Failed attempt to parse Dictionary!"s);
+                    throw ParsingError("Failed attempt to parse Dictionary! Invalid key format. A string is expected"s);
                 }
 
                 string key = LoadString(input).AsString();
@@ -226,14 +226,14 @@ namespace json {
 
                 //здесь проверяем, что ключ со значением разделены двоеточием
                 if (c != ':') {
-                    throw ParsingError("Failed attempt to parse Dictionary!"s);
+                    throw ParsingError("Failed attempt to parse Dictionary! There is no colon between key and value"s);
                 }
 
                 result.insert({move(key), LoadNode(input)});
             }
 
             if (c != '}') {
-                throw ParsingError("Failed attempt to parse Dictionary! There is no second bracket"s);
+                throw ParsingError("Failed attempt to parse Dictionary! There is no end bracket"s);
             }
 
             return Node(move(result));
