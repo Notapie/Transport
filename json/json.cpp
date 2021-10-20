@@ -191,6 +191,10 @@ namespace json {
                     break;
                 }
 
+                if (c == '\n' || c == '\r') {
+                    throw ParsingError("Unexpected end of line"s);
+                }
+
                 line += c;
             }
 
