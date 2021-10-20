@@ -148,13 +148,10 @@ namespace json {
 
         Node LoadString(istream& input) {
             string line;
-            char c;
 
             //new_seq - флаг, обозначающий, что началась последовательность управляющего символа
             bool new_seq = false;
-            bool string_closed = false;
-            while (input) {
-                c = input.get();
+            for (char c = input.get(); input; c = input.get()) {
 
                 //сначала нужно проверить, нет ли у нас открытого начала последовательности
                 if (new_seq) {
@@ -187,7 +184,6 @@ namespace json {
 
                 //если открытой последовательности нет и текущий сивол - ", значит, парсинг строки завершён
                 if (c == '"') {
-                    string_closed = true;
                     break;
                 }
 
@@ -198,7 +194,7 @@ namespace json {
                 line += c;
             }
 
-            if (!string_closed) {
+            if (!input) {
                 throw ParsingError("Failed attempt to parse string! There is no end quote"s);
             }
 
