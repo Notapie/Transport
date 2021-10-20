@@ -48,7 +48,7 @@ namespace json {
                 first = false;
                 result.push_back(LoadNode(input));
             }
-            if (c != ']') {
+            if (!input) {
                 throw ParsingError("Failed attempt to parse Array! There is no end bracket"s);
             }
             return Node(move(result));
@@ -133,7 +133,7 @@ namespace json {
         Node LoadBool(istream& input) {
             string str_value = ReadChars(input);
             if (str_value != "true"sv && str_value != "false"sv) {
-                throw ParsingError("Failed attempt to parse bool!"s);
+                throw ParsingError("Failed attempt to parse \""s + str_value + "\" as bool!"s);
             }
             return Node(str_value == "true"sv);
         }
@@ -141,7 +141,7 @@ namespace json {
         Node LoadNull(istream& input) {
             string str_value = ReadChars(input);
             if (str_value != "null"sv) {
-                throw ParsingError("Failed attempt to parse null!"s);
+                throw ParsingError("Failed attempt to parse \""s + str_value + "\" as null!"s);
             }
             return Node();
         }
@@ -236,7 +236,7 @@ namespace json {
                 result.insert({move(key), LoadNode(input)});
             }
 
-            if (c != '}') {
+            if (!input) {
                 throw ParsingError("Failed attempt to parse Dictionary! There is no end bracket"s);
             }
 
