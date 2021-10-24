@@ -8,7 +8,7 @@ namespace json {
         if (!is_defined_ || is_finished_ || !nodes_stack_[nodes_stack_.size() - 1]->IsMap()) {
             throw std::logic_error("Key() can be called only when Dict construction started!"s);
         } else if (is_key_ready_) {
-            throw std::logic_error("Double key \""s + key + "\" setting!"s);
+            throw std::logic_error("Double key setting! Current attempt key value: \""s + key + '"');
         }
         current_dict_key_ = std::move(key);
         is_key_ready_ = true;

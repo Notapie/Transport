@@ -99,7 +99,7 @@ namespace json {
         std::vector<Node*> nodes_stack_;
 
         std::string current_dict_key_;
-        bool is_key_ready_;
+        bool is_key_ready_ = false;
 
         template<typename T>
         void StartContainer() {
