@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <sstream>
 
+#include "json/json_builder/json_builder.h"
+
 namespace transport_catalogue::service {
     using namespace std::literals;
 

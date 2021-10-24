@@ -25,6 +25,8 @@ namespace transport_catalogue {
 
     class TransportCatalogue {
     public:
+        TransportCatalogue() = default;
+
         void AddStop(std::string_view name, double latitude, double longitude);
         void AddDistance(std::string_view stop_name, std::string_view destination_name, int distace);
 
@@ -37,6 +39,9 @@ namespace transport_catalogue {
         const std::set<std::string_view>& GetStopBuses(std::string_view stop_name) const;
 
         const std::deque<Bus>& GetBuses() const;
+
+        TransportCatalogue(const TransportCatalogue&) = delete;
+        TransportCatalogue& operator=(const TransportCatalogue&) = delete;
 
     private:
         std::deque<Stop> stops_source_;
