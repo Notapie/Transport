@@ -229,6 +229,11 @@ namespace json {
                     throw ParsingError("Failed attempt to parse Dictionary! There is no colon between key and value"s);
                 }
 
+                if (result.count(key) > 0) {
+                    throw ParsingError("Failed attempt to parse Dictionary! Duplicate key \""s
+                                       + key + "\" have been found"s);
+                }
+
                 result.insert({move(key), LoadNode(input)});
             }
 
@@ -357,6 +362,24 @@ namespace json {
             throw std::logic_error("Failed attempt to parse node as string!"s);
         }
         return get<string>(*this);
+    }
+
+    std::string& Node::AsString() {
+        return const_cast<std::string&>(
+                const_cast<const Node&>(*this).AsString()
+        );
+    }
+
+    Array& Node::AsArray() {
+        return const_cast<Array&>(
+                const_cast<const Node&>(*this).AsArray()
+        );
+    }
+
+    Dict& Node::AsMap() {
+        return const_cast<Dict&>(
+                const_cast<const Node&>(*this).AsMap()
+        );
     }
 
     //методы проверки типов в Node
