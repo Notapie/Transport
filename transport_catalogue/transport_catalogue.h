@@ -7,12 +7,11 @@
 #include <set>
 #include <utility>
 
-#include "geo.h"
-
+#include "geo/geo.h"
+#include "domain.h"
 
 namespace transport_catalogue {
-
-    struct Stop;
+    using namespace domain;
 
     namespace detail {
 
@@ -24,48 +23,20 @@ namespace transport_catalogue {
 
     } //namespace detail
 
-    enum class RouteType {
-        ONE_SIDED,
-        REVERSIBLE
-    };
-
-    struct Stop {
-        Stop(std::string_view stop_name, double latitude, double longtitude)
-        : name(std::string(stop_name)), coords({latitude, longtitude}) {}
-
-        std::string name;
-        geo::Coordinates coords;
-    };
-
-    struct Bus {
-        Bus(std::string_view bus_name, std::vector<Stop*>& bus_route, char route_type)
-        : name(std::string(bus_name)), route(std::move(bus_route)),type(route_type == '-'
-        ? RouteType::REVERSIBLE : RouteType::ONE_SIDED) {}
-
-        std::string name;
-        std::vector<Stop*> route;
-        RouteType type = RouteType::ONE_SIDED;
-    };
-
-
     class TransportCatalogue {
     public:
         void AddStop(std::string_view name, double latitude, double longitude);
         void AddDistance(std::string_view stop_name, std::string_view destination_name, int distace);
 
-        void AddBus(std::string_view name, const std::vector<std::string_view>& raw_route, char route_type);
+        void AddBus(std::string_view name, const std::vector<std::string_view>& raw_route, RouteType type);
 
         bool IsBusExists(std::string_view bus_name) const noexcept;
         bool IsStopExists(std::string_view stop_name) const noexcept;
 
-        struct RouteInfo {
-            size_t total_stops = 0;
-            size_t uniq_stops = 0;
-            double real_length = 0.0;
-            double curvature = 0.0;
-        };
         RouteInfo GetRouteInfo(std::string_view bus_name) const;
-        std::vector<std::string> GetStopBuses(std::string_view stop_name) const;
+        const std::set<std::string_view>& GetStopBuses(std::string_view stop_name) const;
+
+        const std::deque<Bus>& GetBuses() const;
 
     private:
         std::deque<Stop> stops_source_;

@@ -2,7 +2,6 @@
 
 #include <unordered_set>
 
-
 namespace transport_catalogue {
 
     namespace detail {
@@ -21,7 +20,7 @@ namespace transport_catalogue {
         name_to_stop_[new_stop_ptr->name] = new_stop_ptr;
     }
 
-    void TransportCatalogue::AddBus(std::string_view name, const std::vector<std::string_view>& raw_route, char route_type) {
+    void TransportCatalogue::AddBus(std::string_view name, const std::vector<std::string_view>& raw_route, RouteType type) {
         std::vector<Stop*> route;
         route.reserve(raw_route.size());
 
@@ -32,7 +31,7 @@ namespace transport_catalogue {
         Bus* new_bus_ptr = &buses_source_.emplace_back(
                 name,
                 route,
-                route_type
+                type
         );
         name_to_bus_[new_bus_ptr->name] = new_bus_ptr;
 
@@ -43,20 +42,20 @@ namespace transport_catalogue {
         }
     }
 
-    TransportCatalogue::RouteInfo TransportCatalogue::GetRouteInfo(std::string_view bus_name) const {
+    RouteInfo TransportCatalogue::GetRouteInfo(std::string_view bus_name) const {
         if (!IsBusExists(bus_name)) {
             return {};
         }
         const Bus& bus = *name_to_bus_.at(bus_name);
 
         size_t total_stops = bus.route.size();
-        if (bus.type == RouteType::REVERSIBLE) {
+        if (bus.type == RouteType::ONE_WAY) {
             total_stops = (total_stops * 2) - 1;
         }
 
         size_t uniq_stops = std::unordered_set<Stop*>{bus.route.begin(), bus.route.end()}.size();
         double geo_length = GetRouteGeoDistance(bus);
-        double real_length = GetRouteRealDistance(bus);
+        int real_length = GetRouteRealDistance(bus);
 
         double curvature = real_length / geo_length;
 
@@ -68,24 +67,13 @@ namespace transport_catalogue {
         };
     }
 
-    std::vector<std::string> TransportCatalogue::GetStopBuses(std::string_view stop_name) const {
-        if (!IsStopExists(stop_name)) {
-            return {};
-        }
-
+    const std::set<std::string_view>& TransportCatalogue::GetStopBuses(std::string_view stop_name) const {
         Stop* stop = name_to_stop_.at(stop_name);
         if (stop_to_buses_.count(stop) == 0) {
-            return {};
+            static const std::set<std::string_view> empty_result;
+            return empty_result;
         }
-        const std::set<std::string_view>& buses = stop_to_buses_.at(stop);
-
-        std::vector<std::string> result;
-        result.reserve(buses.size());
-        for (std::string_view bus : buses) {
-            result.emplace_back(bus);
-        }
-
-        return result;
+        return stop_to_buses_.at(stop);
     }
 
     int TransportCatalogue::GetRealLength(Stop* first_stop, Stop* second_stop) const {
@@ -103,7 +91,7 @@ namespace transport_catalogue {
             distance += geo::ComputeDistance(bus.route.at(i - 1)->coords, bus.route.at(i)->coords);
         }
 
-        if (bus.type == RouteType::REVERSIBLE) {
+        if (bus.type == RouteType::ONE_WAY) {
             distance *= 2;
         }
 
@@ -117,7 +105,7 @@ namespace transport_catalogue {
             distance += GetRealLength(bus.route[i - 1], bus.route[i]);
         }
 
-        if (bus.type == RouteType::REVERSIBLE) {
+        if (bus.type == RouteType::ONE_WAY) {
             for (size_t i = 1; i < bus.route.size(); ++i) {
                 distance += GetRealLength(bus.route[i], bus.route[i - 1]);
             }
@@ -145,6 +133,10 @@ namespace transport_catalogue {
 
     bool TransportCatalogue::IsStopExists(std::string_view stop_name) const noexcept {
         return name_to_stop_.count(stop_name) > 0;
+    }
+
+    const std::deque<Bus>& TransportCatalogue::GetBuses() const {
+        return buses_source_;
     }
 
 } //namespace transport_catalogue
