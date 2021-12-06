@@ -10,14 +10,12 @@ namespace json {
         class DictContext;
         class KeyContext;
 
-        template<typename OwnerContext>
         class BaseContext {
         public:
             BaseContext(Builder& builder) : builder_(builder) {}
-        protected:
-            OwnerContext& Value(const Node& value) {
+
+            void Value(const Node& value) {
                 builder_.Value(Node(value));
-                return AsMainContext();
             }
 
             ArrayContext StartArray() {
@@ -41,37 +39,43 @@ namespace json {
             }
         private:
             Builder& builder_;
-            OwnerContext& AsMainContext() {
-                return static_cast<OwnerContext&>(*this);
+        };
+
+        class ArrayContext : public BaseContext {
+        public:
+            using BaseContext::BaseContext;
+
+            ArrayContext& Value(const Node& value) {
+                BaseContext::Value(value);
+                return *this;
             }
+
+            KeyContext Key(const std::string& key) = delete;
+            Builder& EndDict() = delete;
         };
 
-        class ArrayContext : public BaseContext<ArrayContext> {
+        class DictContext : public BaseContext {
         public:
             using BaseContext::BaseContext;
-            using BaseContext::Value;
-            using BaseContext::StartArray;
-            using BaseContext::EndArray;
-            using BaseContext::StartDict;
-        };
-
-        class DictContext : public BaseContext<DictContext> {
-        public:
-            using BaseContext::BaseContext;
-            using BaseContext::Key;
-            using BaseContext::EndDict;
+            Builder& EndArray() = delete;
+            DictContext StartDict() = delete;
+            ArrayContext StartArray() = delete;
+            void Value(const Node& value) = delete;
         };
 
         class KeyContext : public DictContext {
         public:
             using DictContext::DictContext;
-            using BaseContext::Value;
             using BaseContext::StartArray;
             using BaseContext::StartDict;
 
-        private:
-            using BaseContext::Key;
-            using BaseContext::EndDict;
+            DictContext& Value(const Node& value) {
+                BaseContext::Value(value);
+                return *this;
+            }
+
+            KeyContext Key(const std::string& key) = delete;
+            Builder& EndDict() = delete;
         };
 
     public:
