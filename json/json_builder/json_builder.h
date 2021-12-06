@@ -94,8 +94,8 @@ namespace json {
 
     private:
         Node root_;
-        bool is_defined_ = false;
-        bool is_finished_ = false;
+        bool is_document_defined_ = false;
+        bool is_document_finished_ = false;
         std::vector<Node*> nodes_stack_;
 
         std::string current_dict_key_;
@@ -106,9 +106,9 @@ namespace json {
             using namespace std::literals;
 
             Node* new_node_ptr;
-            if (!is_defined_) {
+            if (!is_document_defined_) {
                 root_ = T();
-                is_defined_ = true;
+                is_document_defined_ = true;
                 new_node_ptr = &root_;
             } else if (nodes_stack_.empty()) {
                 throw std::logic_error("Starting container in the wrong context"s);
@@ -142,9 +142,9 @@ namespace json {
                 container_name = "Dict"s;
             }
 
-            if (!is_defined_) {
+            if (!is_document_defined_) {
                 throw std::logic_error("Failed attempt to close "s + container_name + "! Document is not defined yet"s);
-            } else if (is_finished_) {
+            } else if (is_document_finished_) {
                 throw std::logic_error("Failed attempt to close "s + container_name + "! Document already finished"s);
             }
 
@@ -160,7 +160,7 @@ namespace json {
 
             nodes_stack_.pop_back();
             if (nodes_stack_.empty()) {
-                is_finished_ = true;
+                is_document_finished_ = true;
             }
         }
 

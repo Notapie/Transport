@@ -5,7 +5,7 @@ using namespace std::literals;
 namespace json {
 
     Builder::KeyContext Builder::Key(std::string key) {
-        if (!is_defined_ || is_finished_ || !nodes_stack_[nodes_stack_.size() - 1]->IsMap()) {
+        if (!is_document_defined_ || is_document_finished_ || !nodes_stack_[nodes_stack_.size() - 1]->IsMap()) {
             throw std::logic_error("Key() can be called only when Dict construction started!"s);
         } else if (is_key_ready_) {
             throw std::logic_error("Double key setting! Current attempt key value: \""s + key + '"');
@@ -17,12 +17,12 @@ namespace json {
 
     Builder& Builder::Value(Node&& value) {
         //Если объект не определён, значит, можно заменять корень на значение
-        if (!is_defined_) {
+        if (!is_document_defined_) {
             root_ = std::move(value);
-            is_defined_ = true;
-            is_finished_ = true;
+            is_document_defined_ = true;
+            is_document_finished_ = true;
             return *this;
-        } else if (is_finished_) {
+        } else if (is_document_finished_) {
             //Если объект определён и при этом стэк пуст (объект завершён), значит, были вызваны все End*
             //либо был вызван метод Value(). А значит, нужно кинуть исключение
             throw std::logic_error("Calling Value() in the wrong context! Document already finished"s);
@@ -71,7 +71,7 @@ namespace json {
     }
 
     Node Builder::Build() {
-        if (!is_finished_ || !is_defined_) {
+        if (!is_document_finished_ || !is_document_defined_) {
             throw std::logic_error("JSON is not finished"s);
         }
         return root_;
