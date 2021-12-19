@@ -6,7 +6,7 @@ namespace transport_catalogue {
 
     namespace detail {
 
-        size_t StopsHasher::operator()(const std::pair<Stop *, Stop *> &stops) const {
+        size_t StopsHasher::operator()(const std::pair<const Stop*, const Stop*> &stops) const {
             return ptr_hasher_(stops.first) + ptr_hasher_(stops.second) * 37;
         }
 
@@ -76,8 +76,8 @@ namespace transport_catalogue {
         return stop_to_buses_.at(stop);
     }
 
-    int TransportCatalogue::GetRealLength(Stop* first_stop, Stop* second_stop) const {
-        std::pair<Stop*, Stop*> first_to_second = {first_stop, second_stop};
+    int TransportCatalogue::GetRealLength(const Stop* first_stop, const Stop* second_stop) const {
+        std::pair<const Stop*, const Stop*> first_to_second = {first_stop, second_stop};
         if (stops_to_length_.count(first_to_second) > 0) {
             return stops_to_length_.at(first_to_second);
         }
@@ -121,7 +121,7 @@ namespace transport_catalogue {
         stops_to_length_[std::pair<Stop*, Stop*>{stop, destination}] = distace;
 
         //Добавляем обратный путь, если ещё не добавлен
-        std::pair<Stop*, Stop*> destination_to_stop = {destination, stop};
+        std::pair<const Stop*, const Stop*> destination_to_stop = {destination, stop};
         if (stops_to_length_.count(destination_to_stop) == 0) {
             stops_to_length_[destination_to_stop] = distace;
         }
