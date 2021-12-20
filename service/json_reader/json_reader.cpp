@@ -98,7 +98,14 @@ namespace transport_catalogue::service {
         };
     }
 
-    JsonReader::JsonReader(TransportCatalogue& db) : db_(db) {}
+    RouterSettings ParseRoutingSettings(const json::Dict& settings) {
+        return {
+                GetIntSetting(settings, "bus_wait_time"s),
+                GetDoubleSetting(settings, "bus_velocity"s)
+        };
+    }
+
+    JsonReader::JsonReader(TransportCatalogue& db) : db_(db), transport_router_(db) {}
 
     void JsonReader::ReadJson(std::istream& in) {
         json_raw_ = json::Load(in);
@@ -114,6 +121,11 @@ namespace transport_catalogue::service {
         }
         if (queries.count("render_settings"s)) {
             map_renderer_.UpdateSettings(ParseRenderSettings(queries.at("render_settings"s).AsMap()));
+        }
+        if (queries.count("routing_settings"s)) {
+            transport_router_.UpdateSettings(
+                    ParseRoutingSettings(queries.at("routing_settings"s).AsMap()));
+            transport_router_.BuildGraph();
         }
     }
 
@@ -194,6 +206,11 @@ namespace transport_catalogue::service {
                 continue;
             } else if (type == "Map"sv) {
                 response.Value(RenderMap(request_id));
+                continue;
+            } else if (type == "Route"sv) {
+                std::string_view from = request.at("from"s).AsString();
+                std::string_view to = request.at("to"s).AsString();
+                response.Value(BuildRoute(request_id, from, to));
             }
         }
         json::Print(json::Document{std::move(response.EndArray().Build().AsArray())}, out);
@@ -241,9 +258,45 @@ namespace transport_catalogue::service {
         std::ostringstream oss;
         map_renderer_.Render(db_.GetBuses(), oss);
         return {
-                {"map", oss.str()},
-                {"request_id", request_id}
+                {"map"s, oss.str()},
+                {"request_id"s, request_id}
         };
     }
+
+    json::Dict JsonReader::BuildRoute(int request_id, std::string_view from, std::string_view to) const {
+
+        std::optional<TransportRouter::Route> route = transport_router_.GetRoute(from, to);
+        if (!route) {
+            return {
+                    {"request_id"s, request_id},
+                    {"error_message"s, "not_found"s}
+            };
+        }
+
+
+        json::Builder response;
+        response.StartDict().Key("request_id"s).Value(request_id)
+            .Key("total_time").Value(route->total_time)
+            .Key("items"s).StartArray();
+
+        for (const TransportRouter::Interval& interval : route->intervals) {
+            response.StartDict()
+            .Key("time"s).Value(interval.time);
+            if (interval.type == TransportRouter::IntervalType::TRAVEL) {
+                response
+                .Key("type"s).Value("Bus"s)
+                .Key("bus"s).Value(interval.route_name)
+                .Key("span_count"s).Value(int(interval.stops_count));
+            } else {
+                response
+                .Key("type"s).Value("Wait"s)
+                .Key("stop_name"s).Value(interval.stop_name);
+            }
+            response.EndDict();
+        }
+
+        return response.EndArray().EndDict().Build().AsMap();
+    }
+
 
 } // namespace transport_catalogue::service

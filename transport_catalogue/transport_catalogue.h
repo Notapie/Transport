@@ -38,6 +38,7 @@ namespace transport_catalogue {
         const std::set<std::string_view>& GetStopBuses(std::string_view stop_name) const;
         const std::deque<Bus>& GetBuses() const;
         int GetRealLength(const Stop* first_stop, const Stop* second_stop) const;
+        const Stop* GetStop(std::string_view stop_name) const;
 
         TransportCatalogue(const TransportCatalogue&) = delete;
         TransportCatalogue& operator=(const TransportCatalogue&) = delete;

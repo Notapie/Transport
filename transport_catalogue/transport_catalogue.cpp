@@ -60,10 +60,10 @@ namespace transport_catalogue {
         double curvature = real_length / geo_length;
 
         return {
-            total_stops,
-            uniq_stops,
-            real_length,
-            curvature
+                total_stops,
+                uniq_stops,
+                real_length,
+                curvature
         };
     }
 
@@ -137,6 +137,11 @@ namespace transport_catalogue {
 
     const std::deque<Bus>& TransportCatalogue::GetBuses() const {
         return buses_source_;
+    }
+
+    const Stop* TransportCatalogue::GetStop(std::string_view stop_name) const {
+        if (name_to_stop_.count(stop_name) == 0) return nullptr;
+        return name_to_stop_.at(stop_name);
     }
 
 } //namespace transport_catalogue
