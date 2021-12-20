@@ -4,6 +4,7 @@
 #include <map>
 #include <deque>
 #include <optional>
+#include <memory>
 
 #include "transport_catalogue/domain.h"
 #include "geo/geo.h"
@@ -52,7 +53,9 @@ namespace transport_catalogue::service {
         std::map<graph::EdgeId, const domain::Bus*> edge_to_route_;
 
         graph::DirectedWeightedGraph<double> graph_;
-        graph::Router<double> router_;
+        std::unique_ptr<graph::Router<double>> router_ptr_;
+
+        void AddBusRoute(const domain::Bus& bus);
 
     };
 
