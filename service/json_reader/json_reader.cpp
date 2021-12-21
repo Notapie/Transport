@@ -269,7 +269,7 @@ namespace transport_catalogue::service {
         if (!route) {
             return {
                     {"request_id"s, request_id},
-                    {"error_message"s, "not_found"s}
+                    {"error_message"s, "not found"s}
             };
         }
 

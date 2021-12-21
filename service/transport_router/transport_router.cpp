@@ -18,7 +18,6 @@ namespace transport_catalogue::service {
                 }
                 ++count;
             }
-            count += it->type == RouteType::ONE_WAY ? it->route.size() : 1;
         }
         return count;
     }
@@ -63,25 +62,14 @@ namespace transport_catalogue::service {
 
             edge_to_route_[graph_.AddEdge({prev_stop_id, current_stop_id, time})] = &bus;
 
+            if (bus.type == domain::RouteType::ONE_WAY) {
+                distance = catalogue_.GetRealLength(current_stop, prev_stop);
+                time = distance / (bus_velocity_ / 0.06);
+                edge_to_route_[graph_.AddEdge({current_stop_id, prev_stop_id, time})] = &bus;
+            }
+
             prev_stop = current_stop;
             prev_stop_id = current_stop_id;
-        }
-
-        //Убрать дублирование
-        prev_stop_id = CreateVertex(prev_stop);
-        if (bus.type == domain::RouteType::ONE_WAY) {
-            for (int i = int(stops_count) - 2; i >= 0; --i) {
-                const Stop* current_stop = bus.route.at(i);
-                graph::VertexId current_stop_id = CreateVertex(current_stop);
-
-                double distance = catalogue_.GetRealLength(prev_stop, current_stop);
-                double time = distance / (bus_velocity_ / 0.06);
-
-                edge_to_route_[graph_.AddEdge({prev_stop_id, current_stop_id, time})] = &bus;
-
-                prev_stop = current_stop;
-                prev_stop_id = current_stop_id;
-            }
         }
     }
 
