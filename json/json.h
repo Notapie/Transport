@@ -8,6 +8,8 @@
 
 namespace json {
 
+    class Builder;
+
     class Node;
     using Dict = std::map<std::string, Node>;
     using Array = std::vector<Node>;
@@ -19,7 +21,7 @@ namespace json {
         using runtime_error::runtime_error;
     };
 
-class Node final : private Data {
+    class Node final : private Data {
     public:
 
         using Data::Data;
@@ -40,10 +42,15 @@ class Node final : private Data {
         const Array& AsArray() const;
         const Dict& AsMap() const;
 
+        std::string& AsString();
+        Array& AsArray();
+        Dict& AsMap();
+
         bool operator==(const Node& other) const;
         bool operator!=(const Node& other) const;
 
         friend std::ostream& operator<<(std::ostream&, const Node& node);
+        friend class Builder;
 
     private:
 
