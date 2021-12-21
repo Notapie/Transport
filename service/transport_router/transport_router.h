@@ -12,6 +12,13 @@
 
 namespace transport_catalogue::service {
 
+    struct EdgeInfo {
+        bool is_waiting_edge = false;
+        double duration = 0.0;
+        const domain::Bus* current_route = nullptr;
+        const domain::Stop* destination_stop = nullptr;
+    };
+
     struct RouterSettings {
         int bus_wait_time = 0;
         double bus_velocity = 0.0;
