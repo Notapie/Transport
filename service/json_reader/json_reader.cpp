@@ -264,8 +264,7 @@ namespace transport_catalogue::service {
     }
 
     json::Dict JsonReader::BuildRoute(int request_id, std::string_view from, std::string_view to) const {
-
-        std::optional<TransportRouter::Route> route = transport_router_.GetRoute(from, to);
+        std::optional<Route> route = transport_router_.GetRoute(from, to);
         if (!route) {
             return {
                     {"request_id"s, request_id},
@@ -273,24 +272,23 @@ namespace transport_catalogue::service {
             };
         }
 
-
         json::Builder response;
         response.StartDict().Key("request_id"s).Value(request_id)
             .Key("total_time").Value(route->total_time)
             .Key("items"s).StartArray();
 
-        for (const TransportRouter::Interval& interval : route->intervals) {
+        for (const EdgeInfo& interval : route->intervals) {
             response.StartDict()
-            .Key("time"s).Value(interval.time);
-            if (interval.type == TransportRouter::IntervalType::TRAVEL) {
+            .Key("time"s).Value(interval.duration);
+            if (!interval.is_waiting_edge) {
                 response
                 .Key("type"s).Value("Bus"s)
-                .Key("bus"s).Value(interval.route_name)
-                .Key("span_count"s).Value(int(interval.stops_count));
+                .Key("bus"s).Value(interval.current_route->name)
+                .Key("span_count"s).Value(static_cast<int>(interval.span_count));
             } else {
                 response
                 .Key("type"s).Value("Wait"s)
-                .Key("stop_name"s).Value(interval.stop_name);
+                .Key("stop_name"s).Value(interval.destination_stop->name);
             }
             response.EndDict();
         }

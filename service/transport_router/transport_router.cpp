@@ -8,18 +8,14 @@ namespace transport_catalogue::service {
 
     template<typename It>
     size_t CountVertexes(It begin, It end) {
+        //Считаем именно через маршруты, чтобы исключить остановки, через которые не ходят автобусы
         std::unordered_set<const domain::Stop*> uniq_stops;
-        size_t count = 0;
         for (It it = begin; it != end; ++it) {
             for (const domain::Stop* stop : it->route) {
-                if (uniq_stops.count(stop) == 0) {
-                    uniq_stops.insert(stop);
-                    ++count;
-                }
-                ++count;
+                uniq_stops.insert(stop);
             }
         }
-        return count;
+        return uniq_stops.size() * 2;
     }
 
     TransportRouter::TransportRouter(const TransportCatalogue& catalogue) : catalogue_(catalogue) {}
@@ -51,46 +47,80 @@ namespace transport_catalogue::service {
             return;
         }
 
-        const Stop* prev_stop = bus.route.at(0);
-        graph::VertexId prev_stop_id = CreateVertex(prev_stop);
-        for (size_t i = 1; i < stops_count; ++i) {
+        for (size_t i = 0; i < stops_count - 1; ++i) {
+            //Сначала нужно создать вершину остановки (или получить, если она уже была создана другим маршрутом)
             const Stop* current_stop = bus.route.at(i);
-            graph::VertexId current_stop_id = CreateVertex(current_stop);
+            graph::Edge current_hub = GetStopHub(current_stop);
 
-            double distance = catalogue_.GetRealLength(prev_stop, current_stop);
-            double time = distance / (bus_velocity_ / 0.06);
+            //Тут её нужно слинковать с последующими
+            const Stop* temp_stop_ptr = current_stop; //промежуточная остановка для вычисления общего расстояния
+            double temp_distance = 0.0;
+            double temp_back_disatance = 0.0;
+            for (size_t k = i + 1; k < stops_count; ++k) {
+                size_t span_count = k - i;
+                const Stop* next_stop = bus.route.at(k);
+                graph::Edge next_hub = GetStopHub(next_stop);
 
-            edge_to_route_[graph_.AddEdge({prev_stop_id, current_stop_id, time})] = &bus;
+                //Вычисляем время поездки
+                temp_distance = catalogue_.GetRealLength(temp_stop_ptr, next_stop) + temp_distance;
+                double duration = temp_distance / (bus_velocity_ / 0.06);
 
-            if (bus.type == domain::RouteType::ONE_WAY) {
-                distance = catalogue_.GetRealLength(current_stop, prev_stop);
-                time = distance / (bus_velocity_ / 0.06);
-                edge_to_route_[graph_.AddEdge({current_stop_id, prev_stop_id, time})] = &bus;
+                //Создаём дугу поездки от current_hub.to до next_hub.from
+                //Созданную дугу нужно сразу добавить в контейнер с информацией о ней
+                edge_to_info_[graph_.AddEdge({current_hub.to, next_hub.from, duration})] = {
+                        false,
+                        duration,
+                        span_count,
+                        &bus,
+                        next_stop
+                };
+
+                //А теперь то же самое, только наоборот в случае, если маршрут некольцевой
+                if (bus.type == domain::RouteType::ONE_WAY) {
+                    temp_back_disatance = catalogue_.GetRealLength(next_stop, temp_stop_ptr) + temp_back_disatance;
+                    duration = temp_back_disatance / (bus_velocity_ / 0.06);
+
+                    edge_to_info_[graph_.AddEdge({next_hub.to, current_hub.from, duration})] = {
+                            false,
+                            duration,
+                            span_count,
+                            &bus,
+                            current_stop
+                    };
+                }
+
+                temp_stop_ptr = next_stop;
             }
-
-            prev_stop = current_stop;
-            prev_stop_id = current_stop_id;
         }
     }
 
-    graph::VertexId TransportRouter::CreateVertex(const domain::Stop* stop) {
-        if (!stop_to_hub_.count(stop)) {
-            stop_to_hub_[stop] = vertex_counter_++;
+    //Возвращает хаб остановки. Если его нет, создаёт и возвращает
+    //Более ёмкого названия пока не придумал, но вроде и это подходит
+    graph::Edge<double> TransportRouter::GetStopHub(const domain::Stop* stop) {
+        if (stop_to_hub_.count(stop) > 0) {
+            return graph_.GetEdge(stop_to_hub_.at(stop));
         }
-        graph::VertexId hub_id = stop_to_hub_.at(stop);
-        graph::VertexId stop_id = vertex_counter_++;
 
-        // Путь на остановку и с остановки не принадлежит никакому маршруту, поэтому присваиваем nullptr
-        graph::EdgeId from_hub = graph_.AddEdge({hub_id, stop_id, static_cast<double>(bus_wait_time_)});
-        edge_to_route_[graph_.AddEdge({stop_id, hub_id, 0})] = nullptr;
-        edge_to_route_[from_hub] = nullptr;
+        graph::Edge<double> new_edge = {
+                vertex_counter_++,
+                vertex_counter_++,
+                static_cast<double>(bus_wait_time_)
+        };
 
-        waiting_edge_to_stop_[from_hub] = stop;
+        graph::EdgeId edge_id = stop_to_hub_[stop] = graph_.AddEdge(new_edge);
 
-        return stop_id;
+        edge_to_info_[edge_id] = {
+                true,
+                static_cast<double>(bus_wait_time_),
+                0,
+                nullptr,
+                stop
+        };
+
+        return new_edge;
     }
 
-    std::optional<TransportRouter::Route> TransportRouter::GetRoute(std::string_view from, std::string_view to) const {
+    std::optional<Route> TransportRouter::GetRoute(std::string_view from, std::string_view to) const {
         const Stop* from_ptr = catalogue_.GetStop(from);
         const Stop* to_ptr = catalogue_.GetStop(to);
 
@@ -98,8 +128,8 @@ namespace transport_catalogue::service {
             return std::nullopt;
         }
 
-        graph::VertexId from_vert = stop_to_hub_.at(from_ptr);
-        graph::VertexId to_vert = stop_to_hub_.at(to_ptr);
+        graph::VertexId from_vert = graph_.GetEdge(stop_to_hub_.at(from_ptr)).from;
+        graph::VertexId to_vert = graph_.GetEdge(stop_to_hub_.at(to_ptr)).from;
 
         std::optional<graph::Router<double>::RouteInfo> route = router_ptr_->BuildRoute(from_vert, to_vert);
 
@@ -110,36 +140,10 @@ namespace transport_catalogue::service {
 
         Route result;
         result.total_time = route->weight;
+        result.intervals.reserve(route->edges.size());
 
-        IntervalType interval_type = IntervalType::WAITING;
-        std::string interval_route_name;
-        std::string waiting_stop_name;
-        double interval_time = 0.0;
-        size_t interval_stops_count = 1;
         for (graph::EdgeId edge_id : route->edges) {
-
-            const Bus* current_route = edge_to_route_.at(edge_id);
-            std::string current_route_name = current_route == nullptr ? ""s : current_route->name;
-            std::string current_stop_name = waiting_edge_to_stop_.count(edge_id)
-                    ? waiting_edge_to_stop_.at(edge_id)->name : ""s;
-            IntervalType current_type = current_route == nullptr ? IntervalType::WAITING : IntervalType::TRAVEL;
-            double current_time = graph_.GetEdge(edge_id).weight;
-
-            if (interval_type != current_type) {
-                result.intervals.push_back({
-                    std::exchange(interval_type, current_type),
-                    std::exchange(interval_route_name, current_route_name),
-                    std::exchange(waiting_stop_name, current_stop_name),
-                    std::exchange(interval_time, current_time),
-                    std::exchange(interval_stops_count, 1)
-                });
-            } else {
-                interval_route_name = std::move(current_route_name);
-                waiting_stop_name = std::move(current_stop_name);
-                interval_time += current_time;
-                ++interval_stops_count;
-            }
-
+            result.intervals.push_back(edge_to_info_.at(edge_id));
         }
 
         return result;

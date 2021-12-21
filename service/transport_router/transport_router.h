@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <deque>
 #include <optional>
 #include <memory>
@@ -15,8 +15,14 @@ namespace transport_catalogue::service {
     struct EdgeInfo {
         bool is_waiting_edge = false;
         double duration = 0.0;
+        size_t span_count = 0;
         const domain::Bus* current_route = nullptr;
         const domain::Stop* destination_stop = nullptr;
+    };
+
+    struct Route {
+        double total_time = 0.0;
+        std::vector<EdgeInfo> intervals;
     };
 
     struct RouterSettings {
@@ -26,25 +32,6 @@ namespace transport_catalogue::service {
 
     class TransportRouter {
     public:
-
-        enum class IntervalType {
-            WAITING,
-            TRAVEL
-        };
-
-        struct Interval {
-            IntervalType type = IntervalType::WAITING;
-            std::string route_name;
-            std::string stop_name;
-            double time = 0.0;
-            size_t stops_count = 0;
-        };
-
-        struct Route {
-            double total_time = 0.0;
-            std::vector<Interval> intervals;
-        };
-
         TransportRouter(const TransportCatalogue& catalogue);
         TransportRouter(RouterSettings settings, const TransportCatalogue& catalogue);
         void UpdateSettings(RouterSettings settings);
@@ -56,16 +43,17 @@ namespace transport_catalogue::service {
         double bus_velocity_ = 0.0; // километры в час
         const TransportCatalogue& catalogue_;
 
-        std::map<const domain::Stop*, graph::VertexId> stop_to_hub_;
-        std::map<graph::EdgeId, const domain::Bus*> edge_to_route_;
-        std::map<graph::EdgeId, const domain::Stop*> waiting_edge_to_stop_;
+        // Тут EdgeId выполняет роль хаба, где from - это A', а to - это A
+        std::unordered_map<const domain::Stop*, graph::EdgeId> stop_to_hub_;
+        std::unordered_map<graph::EdgeId, EdgeInfo> edge_to_info_;
+
         size_t vertex_counter_ = 0;
 
         graph::DirectedWeightedGraph<double> graph_;
         std::unique_ptr<graph::Router<double>> router_ptr_;
 
         void AddBusRoute(const domain::Bus& bus);
-        graph::VertexId CreateVertex(const domain::Stop*  stop);
+        graph::Edge<double> GetStopHub(const domain::Stop* stop);
 
     };
 
