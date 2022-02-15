@@ -61,7 +61,7 @@ namespace transport_catalogue::service {
                 graph::Edge next_hub = GetStopHub(next_stop);
 
                 //Вычисляем время поездки
-                temp_distance = catalogue_.GetRealLength(temp_stop_ptr, next_stop) + temp_distance;
+                temp_distance += catalogue_.GetRealLength(temp_stop_ptr, next_stop);
                 double duration = temp_distance / (settings_.bus_velocity / 0.06);
 
                 //Создаём дугу поездки от current_hub.to до next_hub.from
@@ -76,7 +76,7 @@ namespace transport_catalogue::service {
 
                 //А теперь то же самое, только наоборот в случае, если маршрут некольцевой
                 if (bus.type == domain::RouteType::ONE_WAY) {
-                    temp_back_disatance = catalogue_.GetRealLength(next_stop, temp_stop_ptr) + temp_back_disatance;
+                    temp_back_disatance += catalogue_.GetRealLength(next_stop, temp_stop_ptr);
                     duration = temp_back_disatance / (settings_.bus_velocity / 0.06);
 
                     edge_to_info_[graph_.AddEdge({next_hub.to, current_hub.from, duration})] = {
@@ -120,17 +120,17 @@ namespace transport_catalogue::service {
     }
 
     std::optional<Route> TransportRouter::GetRoute(std::string_view from, std::string_view to) const {
-        const Stop* from_ptr = catalogue_.GetStop(from);
-        const Stop* to_ptr = catalogue_.GetStop(to);
+        const Stop* from_stop_ptr = catalogue_.GetStop(from);
+        const Stop* to_stop_ptr = catalogue_.GetStop(to);
 
-        if (from_ptr == nullptr || to_ptr == nullptr || stop_to_hub_.count(from_ptr) == 0 || stop_to_hub_.count(to_ptr) == 0) {
+        if (from_stop_ptr == nullptr || to_stop_ptr == nullptr || stop_to_hub_.count(from_stop_ptr) == 0 || stop_to_hub_.count(to_stop_ptr) == 0) {
             return std::nullopt;
         }
 
-        graph::VertexId from_vert = graph_.GetEdge(stop_to_hub_.at(from_ptr)).from;
-        graph::VertexId to_vert = graph_.GetEdge(stop_to_hub_.at(to_ptr)).from;
+        graph::VertexId from_vertex = graph_.GetEdge(stop_to_hub_.at(from_stop_ptr)).from;
+        graph::VertexId to_vertex = graph_.GetEdge(stop_to_hub_.at(to_stop_ptr)).from;
 
-        std::optional<graph::Router<double>::RouteInfo> route = router_ptr_->BuildRoute(from_vert, to_vert);
+        std::optional<graph::Router<double>::RouteInfo> route = router_ptr_->BuildRoute(from_vertex, to_vertex);
 
         //Если маршрут построить не удалось, то возвращаем пустой optional
         if (!route) {
