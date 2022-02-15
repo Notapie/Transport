@@ -46,23 +46,27 @@ namespace transport_catalogue::service {
             return;
         }
 
+        static auto compute_duration = [this](double distance) {
+            return distance / (settings_.bus_velocity / 0.06);
+        };
+
         for (size_t i = 0; i < stops_count - 1; ++i) {
             //Сначала нужно создать вершину остановки (или получить, если она уже была создана другим маршрутом)
-            const Stop* current_stop = bus.route.at(i);
-            graph::Edge current_hub = GetStopHub(current_stop);
+            const Stop* current_stop_ptr = bus.route.at(i);
+            graph::Edge current_hub = GetStopHub(current_stop_ptr);
 
             //Тут её нужно слинковать с последующими
-            const Stop* temp_stop_ptr = current_stop; //промежуточная остановка для вычисления общего расстояния
+            const Stop* temp_stop_ptr = current_stop_ptr; //промежуточная остановка для вычисления общего расстояния
             double temp_distance = 0.0;
             double temp_back_disatance = 0.0;
             for (size_t k = i + 1; k < stops_count; ++k) {
                 size_t span_count = k - i;
-                const Stop* next_stop = bus.route.at(k);
-                graph::Edge next_hub = GetStopHub(next_stop);
+                const Stop* next_stop_ptr = bus.route.at(k);
+                graph::Edge next_hub = GetStopHub(next_stop_ptr);
 
                 //Вычисляем время поездки
-                temp_distance += catalogue_.GetRealLength(temp_stop_ptr, next_stop);
-                double duration = temp_distance / (settings_.bus_velocity / 0.06);
+                temp_distance += catalogue_.GetRealLength(temp_stop_ptr, next_stop_ptr);
+                double duration = compute_duration(temp_distance);
 
                 //Создаём дугу поездки от current_hub.to до next_hub.from
                 //Созданную дугу нужно сразу добавить в контейнер с информацией о ней
@@ -71,24 +75,24 @@ namespace transport_catalogue::service {
                         duration,
                         span_count,
                         &bus,
-                        next_stop
+                        next_stop_ptr
                 };
 
                 //А теперь то же самое, только наоборот в случае, если маршрут некольцевой
                 if (bus.type == domain::RouteType::ONE_WAY) {
-                    temp_back_disatance += catalogue_.GetRealLength(next_stop, temp_stop_ptr);
-                    duration = temp_back_disatance / (settings_.bus_velocity / 0.06);
+                    temp_back_disatance += catalogue_.GetRealLength(next_stop_ptr, temp_stop_ptr);
+                    duration = compute_duration(temp_back_disatance);
 
                     edge_to_info_[graph_.AddEdge({next_hub.to, current_hub.from, duration})] = {
                             false,
                             duration,
                             span_count,
                             &bus,
-                            current_stop
+                            current_stop_ptr
                     };
                 }
 
-                temp_stop_ptr = next_stop;
+                temp_stop_ptr = next_stop_ptr;
             }
         }
     }
