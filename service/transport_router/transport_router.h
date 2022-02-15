@@ -51,7 +51,7 @@ namespace transport_catalogue::service {
         graph::DirectedWeightedGraph<double> graph_;
         std::unique_ptr<graph::Router<double>> router_ptr_;
 
-        void AddBusRoute(const domain::Bus& bus);
+        void AddBusRoute(const domain::Bus& from_stop_ptr);
         graph::Edge<double> GetStopHub(const domain::Stop* stop);
 
     };
