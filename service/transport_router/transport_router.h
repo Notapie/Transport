@@ -26,8 +26,8 @@ namespace transport_catalogue::service {
     };
 
     struct RouterSettings {
-        int bus_wait_time = 0;
-        double bus_velocity = 0.0;
+        int bus_wait_time = 0; // минуты
+        double bus_velocity = 0.0; // километры в час
     };
 
     class TransportRouter {
@@ -39,8 +39,7 @@ namespace transport_catalogue::service {
         std::optional<Route> GetRoute(std::string_view from, std::string_view to) const;
 
     private:
-        int bus_wait_time_ = 0; // минуты
-        double bus_velocity_ = 0.0; // километры в час
+        RouterSettings settings_;
         const TransportCatalogue& catalogue_;
 
         // Тут EdgeId выполняет роль хаба, где from - это A', а to - это A

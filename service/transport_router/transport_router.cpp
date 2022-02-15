@@ -21,11 +21,10 @@ namespace transport_catalogue::service {
     TransportRouter::TransportRouter(const TransportCatalogue& catalogue) : catalogue_(catalogue) {}
 
     TransportRouter::TransportRouter(RouterSettings settings, const TransportCatalogue& catalogue)
-    : bus_wait_time_(settings.bus_wait_time), bus_velocity_(settings.bus_velocity), catalogue_(catalogue) {}
+    : settings_(settings), catalogue_(catalogue) {}
 
     void TransportRouter::UpdateSettings(RouterSettings settings) {
-        bus_wait_time_ = settings.bus_wait_time;
-        bus_velocity_ = settings.bus_velocity;
+        settings_ = settings;
     }
 
     void TransportRouter::BuildGraph() {
@@ -39,8 +38,8 @@ namespace transport_catalogue::service {
     }
 
     void TransportRouter::AddBusRoute(const domain::Bus& bus) {
-        if (bus_velocity_ <= 0) {
-            throw std::logic_error("invalid bus velocity: \""s + std::to_string(bus_velocity_) + "\""s);
+        if (settings_.bus_velocity <= 0) {
+            throw std::logic_error("invalid bus velocity: \""s + std::to_string(settings_.bus_velocity) + "\""s);
         }
         size_t stops_count = bus.route.size();
         if (stops_count == 0) {
@@ -63,7 +62,7 @@ namespace transport_catalogue::service {
 
                 //Вычисляем время поездки
                 temp_distance = catalogue_.GetRealLength(temp_stop_ptr, next_stop) + temp_distance;
-                double duration = temp_distance / (bus_velocity_ / 0.06);
+                double duration = temp_distance / (settings_.bus_velocity / 0.06);
 
                 //Создаём дугу поездки от current_hub.to до next_hub.from
                 //Созданную дугу нужно сразу добавить в контейнер с информацией о ней
@@ -78,7 +77,7 @@ namespace transport_catalogue::service {
                 //А теперь то же самое, только наоборот в случае, если маршрут некольцевой
                 if (bus.type == domain::RouteType::ONE_WAY) {
                     temp_back_disatance = catalogue_.GetRealLength(next_stop, temp_stop_ptr) + temp_back_disatance;
-                    duration = temp_back_disatance / (bus_velocity_ / 0.06);
+                    duration = temp_back_disatance / (settings_.bus_velocity / 0.06);
 
                     edge_to_info_[graph_.AddEdge({next_hub.to, current_hub.from, duration})] = {
                             false,
@@ -104,14 +103,14 @@ namespace transport_catalogue::service {
         graph::Edge<double> new_edge = {
                 vertex_counter_++,
                 vertex_counter_++,
-                static_cast<double>(bus_wait_time_)
+                static_cast<double>(settings_.bus_wait_time)
         };
 
         graph::EdgeId edge_id = stop_to_hub_[stop] = graph_.AddEdge(new_edge);
 
         edge_to_info_[edge_id] = {
                 true,
-                static_cast<double>(bus_wait_time_),
+                static_cast<double>(settings_.bus_wait_time),
                 0,
                 nullptr,
                 stop
