@@ -6,6 +6,7 @@
 #include "json/json.h"
 #include "transport_catalogue/transport_catalogue.h"
 #include "service/map_renderer/map_renderer.h"
+#include "service/transport_router/transport_router.h"
 
 namespace transport_catalogue::service {
 
@@ -25,6 +26,7 @@ namespace transport_catalogue::service {
     private:
         TransportCatalogue& db_;
         MapRenderer map_renderer_;
+        TransportRouter transport_router_;
 
         json::Document json_raw_;
 
@@ -38,6 +40,7 @@ namespace transport_catalogue::service {
         json::Dict GetBusStat(std::string_view bus_name, int request_id) const;
         json::Dict GetStopStat(std::string_view stop_name, int request_id) const;
         json::Dict RenderMap(int request_id) const;
+        json::Dict BuildRoute(int request_id, std::string_view from, std::string_view to) const;
 
     };
 

@@ -1,7 +1,7 @@
 #include "geo.h"
-#include <cmath>
 
 #define _USE_MATH_DEFINES
+#include <cmath>
 
 namespace geo {
 
