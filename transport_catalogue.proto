@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package transport_catalogue;
+
+message coords {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+message route {
+  repeated int32 stop_index = 1;
+  int32 route_type = 2;
+}
+
+message distance {
+  int32 stop_index = 1;
+  int32 dest_index = 2;
+}
+
+message Base {
+  repeated string stop = 1;
+  repeated string bus = 2;
+
+  repeated coords stop_to_coords = 3;
+  repeated route bus_to_route = 4;
+}
