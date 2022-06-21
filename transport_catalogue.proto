@@ -28,7 +28,7 @@ message distance {
   int32 length = 3;
 }
 
-message Base {
+message TransportCatalogue {
   repeated Stop stop = 1;
   repeated Bus bus = 2;
   repeated distance distance = 3;

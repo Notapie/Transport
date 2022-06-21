@@ -1,4 +1,4 @@
-#include "serialization.hpp"
+#include "serialization.h"
 #include <transport_catalogue.pb.h>
 #include <fstream>
 
@@ -11,7 +11,7 @@ void transport_catalogue::service::Serialization::Serialize(const TransportCatal
                                                             const RenderSettings& render_settings) const {
     std::unordered_map<std::string_view, int32_t> stop_to_index;
     stop_to_index.reserve(db.GetStops().size());
-    transport_schema::Base base;
+    transport_schema::TransportCatalogue base;
 
     // Сначала запишем все остановки
     int32_t index = 0;
@@ -69,7 +69,7 @@ void transport_catalogue::service::Serialization::Deserialize(TransportCatalogue
                                                               RenderSettings& renderSettings) const {
     std::ifstream input_file {settings_.file, std::ios::binary};
 
-    transport_schema::Base base;
+    transport_schema::TransportCatalogue base;
     base.ParseFromIstream(&input_file);
 
     // Добавляем в справочник остановки

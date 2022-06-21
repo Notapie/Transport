@@ -7,7 +7,7 @@
 #include "transport_catalogue/transport_catalogue.h"
 #include "service/map_renderer/map_renderer.h"
 #include "service/transport_router/transport_router.h"
-#include "service/serialization/serialization.hpp"
+#include "service/serialization/serialization.h"
 
 namespace transport_catalogue::service {
 

@@ -8,8 +8,8 @@
 namespace transport_catalogue::domain {
 
     enum class RouteType {
-        ROUND_TRIP,
-        ONE_WAY
+        ROUND_TRIP = 0,
+        ONE_WAY = 1
     };
 
     struct Stop {

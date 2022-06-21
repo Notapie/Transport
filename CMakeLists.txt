@@ -37,7 +37,7 @@ add_executable(
         service/map_renderer/map_renderer.cpp
         service/map_renderer/map_renderer.h
         service/serialization/serialization.cpp
-        service/serialization/serialization.hpp
+        service/serialization/serialization.h
 )
 
 target_include_directories(transport_catalogue PUBLIC ${Protobuf_INCLUDE_DIRS})
