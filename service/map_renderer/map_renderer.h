@@ -84,7 +84,7 @@ namespace transport_catalogue::service {
         int bus_label_font_size = 0;
         svg::Point bus_label_offsets;
 
-        int stop_label_font_size = 00;
+        int stop_label_font_size = 0;
         svg::Point stop_label_offsets;
 
         svg::Color underlayer_color;
@@ -103,6 +103,8 @@ namespace transport_catalogue::service {
 
         void UpdateSettings(const RenderSettings& settings);
         void UpdateSettings(RenderSettings&& settings);
+
+        const RenderSettings& GetSettings() const;
 
     private:
         RenderSettings settings_;

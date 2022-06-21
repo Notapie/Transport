@@ -4,24 +4,18 @@
   },
   "stat_requests": [
     {
-      "id": 1,
-      "name": "289",
-      "type": "Bus"
+      "id": 218563507,
+      "type": "Bus",
+      "name": "14"
     },
     {
-      "id": 2,
-      "name": "Lipetskaya ulitsa 46",
-      "type": "Stop"
+      "id": 508658276,
+      "type": "Stop",
+      "name": "Электросети"
     },
     {
-      "id": 3,
-      "name": "Lipetskaya ulitsa 40",
-      "type": "Stop"
-    },
-    {
-      "id": 4,
-      "name": "Moskvorechye",
-      "type": "Stop"
+      "id": 1359372752,
+      "type": "Map"
     }
   ]
 }

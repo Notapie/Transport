@@ -178,4 +178,8 @@ namespace transport_catalogue::service {
         }
     }
 
+    const RenderSettings& MapRenderer::GetSettings() const {
+        return settings_;
+    }
+
 } // namespace transport_catalogue::service

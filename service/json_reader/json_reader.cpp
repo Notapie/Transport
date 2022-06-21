@@ -155,8 +155,8 @@ namespace transport_catalogue::service {
     }
 
     void JsonReader::SerializeData() const {
-        // TODO: Получать настройки нжуно сервисов
-        serialization_.Serialize(db_, RouterSettings{}, RenderSettings{});
+        // TODO: Получить настройки роутинга
+        serialization_.Serialize(db_, RouterSettings{}, map_renderer_.GetSettings());
     }
 
     void JsonReader::DeserializeData() {
@@ -164,7 +164,10 @@ namespace transport_catalogue::service {
         RenderSettings render_settings;
 
         serialization_.Deserialize(db_, router_settings, render_settings);
-        // TODO: Обновить десериализованные настройки
+
+        map_renderer_.UpdateSettings(render_settings);
+
+        // TODO: Обновить десериализованные настройки роутинга
     }
 
     void JsonReader::HandleBaseRequests(const json::Array& requests) {

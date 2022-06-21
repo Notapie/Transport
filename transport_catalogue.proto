@@ -22,14 +22,17 @@ message Bus {
   Route route = 3;
 }
 
-message distance {
+message Distance {
   int32 stop_index = 1;
   int32 dest_index = 2;
   int32 length = 3;
 }
 
+import "map_renderer.proto";
+
 message TransportCatalogue {
   repeated Stop stop = 1;
   repeated Bus bus = 2;
-  repeated distance distance = 3;
+  repeated Distance distance = 3;
+  RenderSettings render_settings = 4;
 }
