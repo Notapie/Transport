@@ -19,6 +19,10 @@ namespace transport_catalogue::service {
         return list.count(setting) > 0 && list.at(setting).IsInt() ? list.at(setting).AsInt() : 0;
     }
 
+    std::string GetStringSetting(const json::Dict& list, const std::string& setting) {
+        return list.count(setting) > 0 && list.at(setting).IsString() ? list.at(setting).AsString() : ""s;
+    }
+
     svg::Point GetPointSetting(const json::Dict& list, const std::string& setting) {
         if (list.count(setting) > 0) {
             const json::Array& offsets = list.at(setting).AsArray();
@@ -105,6 +109,12 @@ namespace transport_catalogue::service {
         };
     }
 
+    SerializationSettings ParseSerializationSettings(const json::Dict& settings) {
+        return {
+            GetStringSetting(settings, "file"s)
+        };
+    }
+
     JsonReader::JsonReader(TransportCatalogue& db) : db_(db), transport_router_(db) {}
 
     void JsonReader::ReadJson(std::istream& in) {
@@ -127,6 +137,11 @@ namespace transport_catalogue::service {
                     ParseRoutingSettings(queries.at("routing_settings"s).AsMap()));
             transport_router_.BuildGraph();
         }
+        if (queries.count("serialization_settings"s)) {
+            serialization_.UpdateSettings(
+                ParseSerializationSettings(queries.at("serialization_settings"s).AsMap())
+            );
+        }
     }
 
     void JsonReader::GetStats(std::ostream& out) const {
@@ -137,6 +152,19 @@ namespace transport_catalogue::service {
         if (queries.count("stat_requests"s) > 0) {
             HandleStatRequests(queries.at("stat_requests"s).AsArray(), out);
         }
+    }
+
+    void JsonReader::SerializeData() const {
+        // TODO: Получать настройки нжуно сервисов
+        serialization_.Serialize(db_, RouterSettings{}, RenderSettings{});
+    }
+
+    void JsonReader::DeserializeData() {
+        RouterSettings router_settings;
+        RenderSettings render_settings;
+
+        serialization_.Deserialize(db_, router_settings, render_settings);
+        // TODO: Обновить десериализованные настройки
     }
 
     void JsonReader::HandleBaseRequests(const json::Array& requests) {
@@ -295,6 +323,5 @@ namespace transport_catalogue::service {
 
         return response.EndArray().EndDict().Build().AsMap();
     }
-
 
 } // namespace transport_catalogue::service

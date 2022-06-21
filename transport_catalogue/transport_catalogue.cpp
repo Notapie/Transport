@@ -144,4 +144,13 @@ namespace transport_catalogue {
         return name_to_stop_.at(stop_name);
     }
 
+    const std::deque<Stop>& TransportCatalogue::GetStops() const {
+        return stops_source_;
+    }
+
+    const std::unordered_map<std::pair<const Stop*, const Stop*>, int, detail::StopsHasher>&
+    TransportCatalogue::GetDistances() const {
+        return stops_to_length_;
+    }
+
 } //namespace transport_catalogue

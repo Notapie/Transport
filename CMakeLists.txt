@@ -36,6 +36,8 @@ add_executable(
         service/json_reader/json_reader.h
         service/map_renderer/map_renderer.cpp
         service/map_renderer/map_renderer.h
+        service/serialization/serialization.cpp
+        service/serialization/serialization.hpp
 )
 
 target_include_directories(transport_catalogue PUBLIC ${Protobuf_INCLUDE_DIRS})

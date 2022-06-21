@@ -37,6 +37,8 @@ namespace transport_catalogue {
         RouteInfo GetRouteInfo(std::string_view bus_name) const;
         const std::set<std::string_view>& GetStopBuses(std::string_view stop_name) const;
         const std::deque<Bus>& GetBuses() const;
+        const std::deque<Stop>& GetStops() const;
+        const std::unordered_map<std::pair<const Stop*, const Stop*>, int, detail::StopsHasher>& GetDistances() const;
         int GetRealLength(const Stop* first_stop, const Stop* second_stop) const;
         const Stop* GetStop(std::string_view stop_name) const;
 
