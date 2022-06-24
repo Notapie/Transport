@@ -200,9 +200,9 @@ void SerializeTransportRouter(transport_schema::TransportRouter* transport_route
     );
 
     for (const auto& list : transport_router.GetGraph().GetIndicesLists()) {
-        transport_schema::IndicesList& inices_list = *graph_containers_schema.add_indicies_list();
+        transport_schema::IndicesList& indices_list = *graph_containers_schema.add_indices_list();
 
-        inices_list.set_indices_bytes(
+        indices_list.set_indices_bytes(
             reinterpret_cast<const char*>(list.data()),
             sizeof(graph::EdgeId) * list.size()
         );

@@ -10,7 +10,7 @@ message IndicesList {
 
 message GraphContainers {
   bytes edges_bytes = 1; // vector bytes
-  repeated IndicesList indicies_list = 2;
+  repeated IndicesList indices_list = 2;
 }
 
 // router
