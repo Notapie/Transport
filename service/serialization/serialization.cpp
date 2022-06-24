@@ -127,39 +127,25 @@ void SerializeTransportRouter(transport_schema::TransportRouter* transport_route
 
     // Теперь содержимое TransportRouter
     // Vertex counter
-    char vertex_counter_bytes[sizeof(transport_router.GetVertexCounter())];
-    *reinterpret_cast<size_t*>(vertex_counter_bytes) = transport_router.GetVertexCounter();
-    transport_router_schema->set_vertex_counter_bytes(
-            vertex_counter_bytes,
-            sizeof(transport_router.GetVertexCounter())
-    );
+    transport_router_schema->set_vertex_counter(transport_router.GetVertexCounter());
 
     // stop_to_hub
     for (const auto& [stop_ptr, edge_id] : transport_router.GetStopToHub()) {
         int32_t stop_index = stop_to_index.at(stop_ptr->name);
         transport_schema::StopToHub& stop_to_hub_schema = *transport_router_schema->add_stop_to_hub();
         stop_to_hub_schema.set_stop_index(stop_index);
-        stop_to_hub_schema.set_edge_id_bytes(
-            reinterpret_cast<const char*>(&edge_id),
-            sizeof(edge_id)
-        );
+        stop_to_hub_schema.set_edge_id(edge_id);
     }
 
     // edge_to_info
     for (const auto& [edge_id, info] : transport_router.GetEdgeToInfo()) {
         transport_schema::EdgeToInfo& edge_to_info_schema = *transport_router_schema->add_edge_to_info();
-        edge_to_info_schema.set_edge_id_bytes(
-                reinterpret_cast<const char*>(&edge_id),
-                sizeof(edge_id)
-        );
+        edge_to_info_schema.set_edge_id(edge_id);
 
         transport_schema::EdgeInfo& edge_info_schema = *edge_to_info_schema.mutable_edge_info();
         edge_info_schema.set_is_waiting_edge(info.is_waiting_edge);
         edge_info_schema.set_duration(info.duration);
-        edge_info_schema.set_span_count_bytes(
-                reinterpret_cast<const char*>(&info.span_count),
-                sizeof(info.span_count)
-        );
+        edge_info_schema.set_span_count(info.span_count);
         const int32_t dest_stop_index = info.destination_stop != nullptr
             ? stop_to_index.at(info.destination_stop->name) : -1;
         const int32_t current_bus_index = info.current_route != nullptr
@@ -178,13 +164,10 @@ void SerializeTransportRouter(transport_schema::TransportRouter* transport_route
 
             if (data) {
                 data_schema.set_is_init(true);
-                data_schema.set_weight_bytes(data->weight);
+                data_schema.set_weight(data->weight);
 
                 if (data->prev_edge) {
-                    data_schema.mutable_prev_edge()->set_edge_id_bytes(
-                        reinterpret_cast<const char*>(&*data->prev_edge),
-                        sizeof(*data->prev_edge)
-                    );
+                    data_schema.mutable_prev_edge()->set_edge_id(*data->prev_edge);
                 }
             } else {
                 data_schema.set_is_init(false);
@@ -209,16 +192,106 @@ void SerializeTransportRouter(transport_schema::TransportRouter* transport_route
     }
 }
 
-void DeserializeTransportRouter(const transport_schema::TransportRouter& transport_router_schema
+void DeserializeTransportRouter(const transport_catalogue::TransportCatalogue& catalogue
+                                , const transport_schema::TransportCatalogue& base
                               , transport_catalogue::service::TransportRouter& transport_router) {
+    using namespace transport_catalogue::service;
 
+    const transport_schema::TransportRouter& transport_router_schema = base.transport_router();
+
+    // router settings
+    const RouterSettings& settings = *reinterpret_cast<const RouterSettings*>(transport_router_schema.router_settings_bytes().data());
+
+    // vertex counter
+    size_t vertex_counter = transport_router_schema.vertex_counter();
+
+    // stop_to_hub
+    std::unordered_map<const transport_catalogue::domain::Stop*, graph::EdgeId> stop_to_hub;
+    stop_to_hub.reserve(transport_router_schema.stop_to_hub_size());
+    for (const transport_schema::StopToHub& stop_to_hub_schema : transport_router_schema.stop_to_hub()) {
+        const int32_t stop_index = stop_to_hub_schema.stop_index();
+        stop_to_hub[catalogue.GetStop(base.stop(stop_index).name())] = stop_to_hub_schema.edge_id();
+    }
+
+    // edge_to_info
+    std::unordered_map<graph::EdgeId, EdgeInfo> edge_to_info;
+
+    for (const transport_schema::EdgeToInfo& edge_to_info_schema : transport_router_schema.edge_to_info()) {
+        const transport_schema::EdgeInfo& edge_info_schema = edge_to_info_schema.edge_info();
+
+        const int32_t route_index = edge_info_schema.current_route_index();
+        const int32_t destination_index = edge_info_schema.destination_stop_index();
+        const transport_catalogue::Bus* current_route = route_index < 0
+                ? nullptr
+                : catalogue.GetBus(base.bus(route_index).name());
+        const transport_catalogue::Stop* destination_stop = destination_index < 0
+                ? nullptr
+                : catalogue.GetStop(base.stop(destination_index).name());
+        EdgeInfo edge_info {
+            edge_info_schema.is_waiting_edge(),
+            edge_info_schema.duration(),
+            edge_info_schema.span_count(),
+            current_route,
+            destination_stop,
+        };
+
+        const uint32_t edge_id = edge_to_info_schema.edge_id();
+        edge_to_info[edge_id] = edge_info;
+    }
+
+    // router
+    const transport_schema::RouteInternalDataLists& router_lists_schema = transport_router_schema.router_data();
+    graph::Router<double>::RoutesInternalData router_internal_data;
+    router_internal_data.reserve(router_lists_schema.route_internal_data_list_size());
+    for (const transport_schema::RouteInternalDataList& router_list_schema : router_lists_schema.route_internal_data_list()) {
+        auto& router_data_list = router_internal_data.emplace_back();
+        router_data_list.reserve(router_lists_schema.route_internal_data_list_size());
+
+        for (const transport_schema::RouteInternalData& data_schema : router_list_schema.route_internal_data()) {
+            auto& data = router_data_list.emplace_back();
+
+            if (data_schema.is_init()) {
+                graph::Router<double>::RouteInternalData internal_data {
+                    data_schema.weight()
+                };
+                if (data_schema.has_prev_edge()) {
+                    internal_data.prev_edge = data_schema.prev_edge().edge_id();
+                }
+                data = internal_data;
+            }
+        }
+    }
+
+    // graph
+    const transport_schema::GraphContainers& graph_containers_schema = transport_router_schema.graph_containers();
+    std::vector<graph::Edge<double>> graph_edges;
+    const size_t graph_edges_size = graph_containers_schema.edges_bytes().size() / sizeof(graph::Edge<double>);
+    graph_edges.reserve(graph_edges_size);
+
+    for (size_t i = 0; i < graph_edges_size; ++i) {
+        const auto* edge_ptr = reinterpret_cast<const graph::Edge<double>*>(graph_containers_schema.edges_bytes().data()) + i;
+        graph_edges.push_back(*edge_ptr);
+    }
+
+    std::vector<std::vector<graph::EdgeId>> indices_lists;
+    indices_lists.reserve(graph_containers_schema.indices_list_size());
+    for (const transport_schema::IndicesList& indices_list_schema : graph_containers_schema.indices_list()) {
+        std::vector<graph::EdgeId>& indices_list = indices_lists.emplace_back();
+        const size_t indices_list_size = indices_list_schema.indices_bytes().size() / sizeof(graph::EdgeId);
+        indices_list.reserve(indices_list_size);
+
+        for (size_t i = 0; i < indices_list_size; ++i) {
+            const auto* edge_id_ptr = reinterpret_cast<const graph::EdgeId*>(indices_list_schema.indices_bytes().data()) + i;
+            indices_list.push_back(*edge_id_ptr);
+        }
+    }
 }
 
 void transport_catalogue::service::Serialization::Serialize(const TransportCatalogue& db,
                                                             const TransportRouter& transport_router,
                                                             const RenderSettings& render_settings) const {
     std::unordered_map<std::string_view, int32_t> stop_to_index;
-    std::unordered_map<std::string_view, int32_t> bus_to_inex;
+    std::unordered_map<std::string_view, int32_t> bus_to_index;
     stop_to_index.reserve(db.GetStops().size());
     transport_schema::TransportCatalogue base;
 
@@ -256,7 +329,7 @@ void transport_catalogue::service::Serialization::Serialize(const TransportCatal
             bus_route_schema->add_stop_index(stop_to_index.at(stop_ptr->name));
         }
 
-        bus_to_inex[bus.name] = index++;
+        bus_to_index[bus.name] = index++;
     }
 
     // Теперь запишем дистанции между остановками
@@ -271,14 +344,14 @@ void transport_catalogue::service::Serialization::Serialize(const TransportCatal
     }
 
     SerializeRenderSettings(base.mutable_render_settings(), render_settings);
-    SerializeTransportRouter(base.mutable_transport_router(), transport_router, stop_to_index, bus_to_inex);
+    SerializeTransportRouter(base.mutable_transport_router(), transport_router, stop_to_index, bus_to_index);
 
     // Теперь можно делать сериализацию в файл
     std::ofstream out_file {settings_.file, std::ios::binary};
     base.SerializeToOstream(&out_file);
 }
 
-void transport_catalogue::service::Serialization::Deserialize(TransportCatalogue& db, RouterSettings& settings,
+void transport_catalogue::service::Serialization::Deserialize(TransportCatalogue& db, TransportRouter& transport_router,
                                                               RenderSettings& renderSettings) const {
     std::ifstream input_file {settings_.file, std::ios::binary};
 
@@ -311,7 +384,5 @@ void transport_catalogue::service::Serialization::Deserialize(TransportCatalogue
     }
 
     DeserializeRenderSettings(base.render_settings(), renderSettings);
-
-    // TODO: Добавить десериализацию настроек роутинга
-
+    DeserializeTransportRouter(db, base, transport_router);
 }

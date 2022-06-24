@@ -41,6 +41,7 @@ namespace transport_catalogue {
         const std::unordered_map<std::pair<const Stop*, const Stop*>, int, detail::StopsHasher>& GetDistances() const;
         int GetRealLength(const Stop* first_stop, const Stop* second_stop) const;
         const Stop* GetStop(std::string_view stop_name) const;
+        const Bus* GetBus(std::string_view bus_name) const;
 
         TransportCatalogue(const TransportCatalogue&) = delete;
         TransportCatalogue& operator=(const TransportCatalogue&) = delete;

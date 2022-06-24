@@ -153,4 +153,9 @@ namespace transport_catalogue {
         return stops_to_length_;
     }
 
+    const Bus* TransportCatalogue::GetBus(std::string_view bus_name) const {
+        if (name_to_bus_.count(bus_name) == 0) return nullptr;
+        return name_to_bus_.at(bus_name);
+    }
+
 } //namespace transport_catalogue

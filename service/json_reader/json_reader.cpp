@@ -162,7 +162,7 @@ namespace transport_catalogue::service {
         RouterSettings router_settings;
         RenderSettings render_settings;
 
-        serialization_.Deserialize(db_, router_settings, render_settings);
+        serialization_.Deserialize(db_, transport_router_, render_settings);
 
         map_renderer_.UpdateSettings(render_settings);
 

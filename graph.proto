@@ -17,13 +17,13 @@ message GraphContainers {
 
 // Выполняет роль std::optional<EdgeId>
 message PrevEdge {
-  bytes edge_id_bytes = 2; // size_t
+  uint32 edge_id = 2;
 }
 
 // Выполняет роль std::optional<RouteInternalData>
 message RouteInternalData {
   bool is_init = 1;
-  double weight_bytes = 2;
+  double weight = 2;
   PrevEdge prev_edge = 3;
 }
 
@@ -40,24 +40,24 @@ message RouteInternalDataLists {
 message EdgeInfo {
   bool is_waiting_edge = 1;
   double duration = 2;
-  bytes span_count_bytes = 3; // size_t
+  uint32 span_count = 3;
   int32 current_route_index = 4;
   int32 destination_stop_index = 5;
 }
 
 message EdgeToInfo {
-  bytes edge_id_bytes = 1; // size_t
+  uint32 edge_id = 1;
   EdgeInfo edge_info = 2;
 }
 
 message StopToHub {
   int32 stop_index = 1;
-  bytes edge_id_bytes = 2; // size_t
+  uint32 edge_id = 2;
 }
 
 message TransportRouter {
   bytes router_settings_bytes = 1; //router settings struct
-  bytes vertex_counter_bytes = 2; // size_t
+  int32 vertex_counter = 2;
   repeated StopToHub stop_to_hub = 3;
   repeated EdgeToInfo edge_to_info = 4;
   RouteInternalDataLists router_data = 5;
