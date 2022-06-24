@@ -29,10 +29,12 @@ message Distance {
 }
 
 import "map_renderer.proto";
+import "graph.proto";
 
 message TransportCatalogue {
   repeated Stop stop = 1;
   repeated Bus bus = 2;
   repeated Distance distance = 3;
   RenderSettings render_settings = 4;
+  TransportRouter transport_router = 5;
 }

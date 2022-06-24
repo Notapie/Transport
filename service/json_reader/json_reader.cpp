@@ -155,8 +155,7 @@ namespace transport_catalogue::service {
     }
 
     void JsonReader::SerializeData() const {
-        // TODO: Получить настройки роутинга
-        serialization_.Serialize(db_, RouterSettings{}, map_renderer_.GetSettings());
+        serialization_.Serialize(db_, transport_router_, map_renderer_.GetSettings());
     }
 
     void JsonReader::DeserializeData() {

@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package transport_schema;
+
+// graph
+
+message IndicesList {
+  bytes indices_bytes = 1; // vector bytes
+}
+
+message GraphContainers {
+  bytes edges_bytes = 1; // vector bytes
+  repeated IndicesList indicies_list = 2;
+}
+
+// router
+
+// Выполняет роль std::optional<EdgeId>
+message PrevEdge {
+  bytes edge_id_bytes = 2; // size_t
+}
+
+// Выполняет роль std::optional<RouteInternalData>
+message RouteInternalData {
+  bool is_init = 1;
+  double weight_bytes = 2;
+  PrevEdge prev_edge = 3;
+}
+
+message RouteInternalDataList {
+  repeated RouteInternalData route_internal_data = 1;
+}
+
+message RouteInternalDataLists {
+  repeated RouteInternalDataList route_internal_data_list = 1;
+}
+
+// transport_router
+
+message EdgeInfo {
+  bool is_waiting_edge = 1;
+  double duration = 2;
+  bytes span_count_bytes = 3; // size_t
+  int32 current_route_index = 4;
+  int32 destination_stop_index = 5;
+}
+
+message EdgeToInfo {
+  bytes edge_id_bytes = 1; // size_t
+  EdgeInfo edge_info = 2;
+}
+
+message StopToHub {
+  int32 stop_index = 1;
+  bytes edge_id_bytes = 2; // size_t
+}
+
+message TransportRouter {
+  bytes router_settings_bytes = 1; //router settings struct
+  bytes vertex_counter_bytes = 2; // size_t
+  repeated StopToHub stop_to_hub = 3;
+  repeated EdgeToInfo edge_to_info = 4;
+  RouteInternalDataLists router_data = 5;
+  GraphContainers graph_containers = 6;
+}

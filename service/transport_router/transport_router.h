@@ -38,6 +38,13 @@ namespace transport_catalogue::service {
         void BuildGraph();
         std::optional<Route> GetRoute(std::string_view from, std::string_view to) const;
 
+        const RouterSettings& GetSettings() const;
+        const std::unordered_map<const domain::Stop*, graph::EdgeId>& GetStopToHub() const;
+        const std::unordered_map<graph::EdgeId, EdgeInfo>& GetEdgeToInfo() const;
+        const graph::DirectedWeightedGraph<double>& GetGraph() const;
+        const graph::Router<double>& GetRouter() const;
+        size_t GetVertexCounter() const;
+
     private:
         RouterSettings settings_;
         const TransportCatalogue& catalogue_;

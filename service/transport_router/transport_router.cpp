@@ -144,4 +144,28 @@ namespace transport_catalogue::service {
         return result;
     }
 
+    const std::unordered_map<const domain::Stop*, graph::EdgeId>& TransportRouter::GetStopToHub() const {
+        return stop_to_hub_;
+    }
+
+    const std::unordered_map<graph::EdgeId, EdgeInfo>& TransportRouter::GetEdgeToInfo() const {
+        return edge_to_info_;
+    }
+
+    size_t TransportRouter::GetVertexCounter() const {
+        return vertex_counter_;
+    }
+
+    const RouterSettings& TransportRouter::GetSettings() const {
+        return settings_;
+    }
+
+    const graph::DirectedWeightedGraph<double>& TransportRouter::GetGraph() const {
+        return graph_;
+    }
+
+    const graph::Router<double>& TransportRouter::GetRouter() const {
+        return *router_ptr_;
+    }
+
 } // namespace transport_catalogue::service

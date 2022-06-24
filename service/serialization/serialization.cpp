@@ -115,10 +115,110 @@ void DeserializeRenderSettings(const transport_schema::RenderSettings& settings_
     }
 }
 
+void SerializeTransportRouter(transport_schema::TransportRouter* transport_router_schema
+                              , const transport_catalogue::service::TransportRouter& transport_router
+                              , const std::unordered_map<std::string_view, int32_t>& stop_to_index
+                              , const std::unordered_map<std::string_view, int32_t>& bus_to_index) {
+    // Сначала сериализуем настройки
+    transport_router_schema->set_router_settings_bytes(
+        reinterpret_cast<const char*>(&transport_router.GetSettings()),
+        sizeof(transport_router.GetSettings())
+    );
+
+    // Теперь содержимое TransportRouter
+    // Vertex counter
+    char vertex_counter_bytes[sizeof(transport_router.GetVertexCounter())];
+    *reinterpret_cast<size_t*>(vertex_counter_bytes) = transport_router.GetVertexCounter();
+    transport_router_schema->set_vertex_counter_bytes(
+            vertex_counter_bytes,
+            sizeof(transport_router.GetVertexCounter())
+    );
+
+    // stop_to_hub
+    for (const auto& [stop_ptr, edge_id] : transport_router.GetStopToHub()) {
+        int32_t stop_index = stop_to_index.at(stop_ptr->name);
+        transport_schema::StopToHub& stop_to_hub_schema = *transport_router_schema->add_stop_to_hub();
+        stop_to_hub_schema.set_stop_index(stop_index);
+        stop_to_hub_schema.set_edge_id_bytes(
+            reinterpret_cast<const char*>(&edge_id),
+            sizeof(edge_id)
+        );
+    }
+
+    // edge_to_info
+    for (const auto& [edge_id, info] : transport_router.GetEdgeToInfo()) {
+        transport_schema::EdgeToInfo& edge_to_info_schema = *transport_router_schema->add_edge_to_info();
+        edge_to_info_schema.set_edge_id_bytes(
+                reinterpret_cast<const char*>(&edge_id),
+                sizeof(edge_id)
+        );
+
+        transport_schema::EdgeInfo& edge_info_schema = *edge_to_info_schema.mutable_edge_info();
+        edge_info_schema.set_is_waiting_edge(info.is_waiting_edge);
+        edge_info_schema.set_duration(info.duration);
+        edge_info_schema.set_span_count_bytes(
+                reinterpret_cast<const char*>(&info.span_count),
+                sizeof(info.span_count)
+        );
+        const int32_t dest_stop_index = info.destination_stop != nullptr
+            ? stop_to_index.at(info.destination_stop->name) : -1;
+        const int32_t current_bus_index = info.current_route != nullptr
+            ? bus_to_index.at(info.current_route->name) : -1;
+        edge_info_schema.set_destination_stop_index(dest_stop_index);
+        edge_info_schema.set_current_route_index(current_bus_index);
+    }
+
+    // router
+    transport_schema::RouteInternalDataLists& router_data_schema = *transport_router_schema->mutable_router_data();
+    for (const auto& list : transport_router.GetRouter().GetInternalData()) {
+        transport_schema::RouteInternalDataList& data_list_schema = *router_data_schema.add_route_internal_data_list();
+
+        for (const auto& data : list) {
+            transport_schema::RouteInternalData& data_schema = *data_list_schema.add_route_internal_data();
+
+            if (data) {
+                data_schema.set_is_init(true);
+                data_schema.set_weight_bytes(data->weight);
+
+                if (data->prev_edge) {
+                    data_schema.mutable_prev_edge()->set_edge_id_bytes(
+                        reinterpret_cast<const char*>(&*data->prev_edge),
+                        sizeof(*data->prev_edge)
+                    );
+                }
+            } else {
+                data_schema.set_is_init(false);
+            }
+        }
+    }
+
+    // graph
+    transport_schema::GraphContainers& graph_containers_schema = *transport_router_schema->mutable_graph_containers();
+    graph_containers_schema.set_edges_bytes(
+        reinterpret_cast<const char*>(transport_router.GetGraph().GetEdgesData().data()),
+        sizeof(graph::Edge<double>) * transport_router.GetGraph().GetEdgesData().size()
+    );
+
+    for (const auto& list : transport_router.GetGraph().GetIndicesLists()) {
+        transport_schema::IndicesList& inices_list = *graph_containers_schema.add_indicies_list();
+
+        inices_list.set_indices_bytes(
+            reinterpret_cast<const char*>(list.data()),
+            sizeof(graph::EdgeId) * list.size()
+        );
+    }
+}
+
+void DeserializeTransportRouter(const transport_schema::TransportRouter& transport_router_schema
+                              , transport_catalogue::service::TransportRouter& transport_router) {
+
+}
+
 void transport_catalogue::service::Serialization::Serialize(const TransportCatalogue& db,
-                                                            const RouterSettings& routing_settings,
+                                                            const TransportRouter& transport_router,
                                                             const RenderSettings& render_settings) const {
     std::unordered_map<std::string_view, int32_t> stop_to_index;
+    std::unordered_map<std::string_view, int32_t> bus_to_inex;
     stop_to_index.reserve(db.GetStops().size());
     transport_schema::TransportCatalogue base;
 
@@ -141,6 +241,7 @@ void transport_catalogue::service::Serialization::Serialize(const TransportCatal
     }
 
     // Затем запишем все маршруты
+    index = 0;
     for (const Bus& bus : db.GetBuses()) {
         // Добавляем автобус
         transport_schema::Bus* bus_schema = base.add_bus();
@@ -154,6 +255,8 @@ void transport_catalogue::service::Serialization::Serialize(const TransportCatal
         for (const Stop* stop_ptr : bus.route) {
             bus_route_schema->add_stop_index(stop_to_index.at(stop_ptr->name));
         }
+
+        bus_to_inex[bus.name] = index++;
     }
 
     // Теперь запишем дистанции между остановками
@@ -168,8 +271,7 @@ void transport_catalogue::service::Serialization::Serialize(const TransportCatal
     }
 
     SerializeRenderSettings(base.mutable_render_settings(), render_settings);
-
-    // TODO: Добавить сериализацию настроек роутинга
+    SerializeTransportRouter(base.mutable_transport_router(), transport_router, stop_to_index, bus_to_inex);
 
     // Теперь можно делать сериализацию в файл
     std::ofstream out_file {settings_.file, std::ios::binary};
