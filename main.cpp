@@ -26,6 +26,7 @@ int main(int argc, char* argv[]) {
 
         json_reader.ReadJson(std::cin);
         json_reader.FillCatalogue();
+        json_reader.BuildGraph();
         json_reader.SerializeData();
 
     } else if (mode == "process_requests"sv) {

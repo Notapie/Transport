@@ -33,7 +33,16 @@ namespace transport_catalogue::service {
     class TransportRouter {
     public:
         TransportRouter(const TransportCatalogue& catalogue);
-        TransportRouter(RouterSettings settings, const TransportCatalogue& catalogue);
+
+        void SetState(
+                std::unordered_map<const domain::Stop*, graph::EdgeId>&& stop_to_hub,
+                std::unordered_map<graph::EdgeId, EdgeInfo>&& edge_to_info,
+                size_t vertex_counter,
+                std::vector<graph::Edge<double>>&& edges,
+                std::vector<std::vector<graph::EdgeId>>&& indices_lists,
+                graph::Router<double>::RoutesInternalData&& router_data
+        );
+
         void UpdateSettings(RouterSettings settings);
         void BuildGraph();
         std::optional<Route> GetRoute(std::string_view from, std::string_view to) const;

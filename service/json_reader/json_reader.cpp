@@ -135,13 +135,16 @@ namespace transport_catalogue::service {
         if (queries.count("routing_settings"s)) {
             transport_router_.UpdateSettings(
                     ParseRoutingSettings(queries.at("routing_settings"s).AsMap()));
-            transport_router_.BuildGraph();
         }
         if (queries.count("serialization_settings"s)) {
             serialization_.UpdateSettings(
                 ParseSerializationSettings(queries.at("serialization_settings"s).AsMap())
             );
         }
+    }
+
+    void JsonReader::BuildGraph() {
+        transport_router_.BuildGraph();
     }
 
     void JsonReader::GetStats(std::ostream& out) const {
@@ -159,14 +162,7 @@ namespace transport_catalogue::service {
     }
 
     void JsonReader::DeserializeData() {
-        RouterSettings router_settings;
-        RenderSettings render_settings;
-
-        serialization_.Deserialize(db_, transport_router_, render_settings);
-
-        map_renderer_.UpdateSettings(render_settings);
-
-        // TODO: Обновить десериализованные настройки роутинга
+        serialization_.Deserialize(db_, transport_router_, map_renderer_);
     }
 
     void JsonReader::HandleBaseRequests(const json::Array& requests) {

@@ -21,6 +21,9 @@ namespace transport_catalogue::service {
         // Заполняет каталог из сохранённого json'а
         void FillCatalogue();
 
+        // Строит граф на основании базы
+        void BuildGraph();
+
         // Сериализует все настройки и саму базу какталога в файл имя которого передаётся через json методами ReadJson и FillCatalogue
         void SerializeData() const;
 

@@ -27,8 +27,10 @@ namespace graph {
         using RoutesInternalData = std::vector<std::vector<std::optional<RouteInternalData>>>;
 
         explicit Router(const Graph& graph);
-        Router(const Graph& graph, RoutesInternalData&& routes_data)
-        : graph_(graph), routes_internal_data_(std::move(routes_data)) {}
+
+        Router(const Graph& graph, RoutesInternalData&& routes_internal_data)
+        : graph_(graph)
+        , routes_internal_data_(std::move(routes_internal_data)) {}
 
         struct RouteInfo {
             Weight weight;

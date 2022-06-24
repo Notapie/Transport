@@ -17,7 +17,7 @@ namespace transport_catalogue::service {
         void UpdateSettings(SerializationSettings&& settings);
 
         void Serialize(const TransportCatalogue& db, const TransportRouter& transport_router, const RenderSettings& render_settings) const;
-        void Deserialize(TransportCatalogue& db, TransportRouter& transport_router, RenderSettings& renderSettings) const;
+        void Deserialize(TransportCatalogue& db, TransportRouter& transport_router, MapRenderer& map_renderer) const;
 
     private:
         SerializationSettings settings_;

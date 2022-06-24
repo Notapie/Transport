@@ -85,7 +85,9 @@ svg::Color DeserializeColor(const transport_schema::Color& color_schema) {
 };
 
 void DeserializeRenderSettings(const transport_schema::RenderSettings& settings_schema_ptr,
-                               transport_catalogue::service::RenderSettings& render_settings) {
+                               transport_catalogue::service::MapRenderer& map_renderer) {
+    transport_catalogue::service::RenderSettings render_settings;
+
     render_settings.width = settings_schema_ptr.width();
     render_settings.height = settings_schema_ptr.height();
 
@@ -113,6 +115,8 @@ void DeserializeRenderSettings(const transport_schema::RenderSettings& settings_
     for (const transport_schema::Color color_schema : settings_schema_ptr.color_palette()) {
         render_settings.color_palette.push_back(DeserializeColor(color_schema));
     }
+
+    map_renderer.UpdateSettings(render_settings);
 }
 
 void SerializeTransportRouter(transport_schema::TransportRouter* transport_router_schema
@@ -167,7 +171,7 @@ void SerializeTransportRouter(transport_schema::TransportRouter* transport_route
                 data_schema.set_weight(data->weight);
 
                 if (data->prev_edge) {
-                    data_schema.mutable_prev_edge()->set_edge_id(*data->prev_edge);
+                    data_schema.mutable_prev_edge()->set_edge_id(static_cast<uint32_t>(*data->prev_edge));
                 }
             } else {
                 data_schema.set_is_init(false);
@@ -285,6 +289,11 @@ void DeserializeTransportRouter(const transport_catalogue::TransportCatalogue& c
             indices_list.push_back(*edge_id_ptr);
         }
     }
+
+    // update router
+    transport_router.UpdateSettings(settings);
+    transport_router.SetState(std::move(stop_to_hub), std::move(edge_to_info), vertex_counter,
+                              std::move(graph_edges), std::move(indices_lists), std::move(router_internal_data));
 }
 
 void transport_catalogue::service::Serialization::Serialize(const TransportCatalogue& db,
@@ -352,7 +361,7 @@ void transport_catalogue::service::Serialization::Serialize(const TransportCatal
 }
 
 void transport_catalogue::service::Serialization::Deserialize(TransportCatalogue& db, TransportRouter& transport_router,
-                                                              RenderSettings& renderSettings) const {
+                                                              MapRenderer& map_renderer) const {
     std::ifstream input_file {settings_.file, std::ios::binary};
 
     transport_schema::TransportCatalogue base;
@@ -383,6 +392,6 @@ void transport_catalogue::service::Serialization::Deserialize(TransportCatalogue
         db.AddBus(bus_schema.name(), route, static_cast<transport_catalogue::RouteType>(bus_schema.route().route_type()));
     }
 
-    DeserializeRenderSettings(base.render_settings(), renderSettings);
+    DeserializeRenderSettings(base.render_settings(), map_renderer);
     DeserializeTransportRouter(db, base, transport_router);
 }

@@ -20,9 +20,6 @@ namespace transport_catalogue::service {
 
     TransportRouter::TransportRouter(const TransportCatalogue& catalogue) : catalogue_(catalogue) {}
 
-    TransportRouter::TransportRouter(RouterSettings settings, const TransportCatalogue& catalogue)
-    : settings_(settings), catalogue_(catalogue) {}
-
     void TransportRouter::UpdateSettings(RouterSettings settings) {
         settings_ = settings;
     }
@@ -61,7 +58,7 @@ namespace transport_catalogue::service {
                 graph::Edge next_hub = GetStopHub(next_stop_ptr);
 
                 // Функция создания ребра
-                static auto add_new_edge = [&](const Stop* from_stop_ptr, const Stop* to_stop_ptr,
+                auto add_new_edge = [&, this](const Stop* from_stop_ptr, const Stop* to_stop_ptr,
                         graph::Edge<double> source_hub, graph::Edge<double> dest_hub, double& temp_distance,
                         const Stop* dest_stop_ptr) {
                     //Вычисляем время поездки
@@ -166,6 +163,19 @@ namespace transport_catalogue::service {
 
     const graph::Router<double>& TransportRouter::GetRouter() const {
         return *router_ptr_;
+    }
+
+    void TransportRouter::SetState(std::unordered_map<const domain::Stop*, graph::EdgeId>&& stop_to_hub,
+                                   std::unordered_map<graph::EdgeId, EdgeInfo>&& edge_to_info,
+                                   size_t vertex_counter,
+                                   std::vector<graph::Edge<double>>&& edges,
+                                   std::vector<std::vector<graph::EdgeId>>&& indices_lists,
+                                   graph::Router<double>::RoutesInternalData&& router_data) {
+        stop_to_hub_ = std::move(stop_to_hub);
+        edge_to_info_ = std::move(edge_to_info);
+        vertex_counter_ = vertex_counter;
+        graph_ = graph::DirectedWeightedGraph<double>(std::move(edges), std::move(indices_lists));
+        router_ptr_ = std::make_unique<graph::Router<double>>(graph_, std::move(router_data));
     }
 
 } // namespace transport_catalogue::service
